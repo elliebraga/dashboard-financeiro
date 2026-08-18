@@ -1,6 +1,7 @@
 -- =====================================================================
 -- SCRIPT DE CONFIGURAÇÃO DO BANCO DE DADOS SUPABASE / POSTGRESQL
 -- Executar este script no SQL Editor do seu projeto Supabase
+-- Totalmente Idempotente (Pode ser re-executado sem erros)
 -- =====================================================================
 
 -- 1. Habilitar a extensão para geração de UUID (caso não esteja ativa)
@@ -63,44 +64,75 @@ INSERT INTO public.categories (name, type) VALUES
     ('Outras Despesas', 'expense')
 ON CONFLICT DO NOTHING;
 
--- 8. Configuração de Row Level Security (RLS)
+-- 8. Configuração de Row Level Security (RLS) com remoção prévia de políticas (Safe Drop)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
+-- Políticas em Users
+DROP POLICY IF EXISTS "Permitir leitura pública em users" ON public.users;
 CREATE POLICY "Permitir leitura pública em users" 
     ON public.users FOR SELECT 
     USING (true);
 
+-- Políticas em Categories
+DROP POLICY IF EXISTS "Permitir leitura pública em categories" ON public.categories;
 CREATE POLICY "Permitir leitura pública em categories" 
     ON public.categories FOR SELECT 
     USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserção pública em categories" ON public.categories;
 CREATE POLICY "Permitir inserção pública em categories" 
     ON public.categories FOR INSERT 
     WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir exclusão pública em categories" ON public.categories;
 CREATE POLICY "Permitir exclusão pública em categories" 
     ON public.categories FOR DELETE 
     USING (true);
 
+-- Políticas em Transactions
+DROP POLICY IF EXISTS "Permitir leitura pública em transactions" ON public.transactions;
 CREATE POLICY "Permitir leitura pública em transactions" 
     ON public.transactions FOR SELECT 
     USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserção pública em transactions" ON public.transactions;
 CREATE POLICY "Permitir inserção pública em transactions" 
     ON public.transactions FOR INSERT 
     WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir exclusão pública em transactions" ON public.transactions;
 CREATE POLICY "Permitir exclusão pública em transactions" 
     ON public.transactions FOR DELETE 
     USING (true);
 
+DROP POLICY IF EXISTS "Permitir atualização pública em transactions" ON public.transactions;
 CREATE POLICY "Permitir atualização pública em transactions" 
     ON public.transactions FOR UPDATE 
     USING (true);
 
--- 9. Habilitar Supabase Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.categories;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.users;
+-- 9. Habilitar Supabase Realtime com verificação prévia (Safe Publication Add)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'transactions'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'categories'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.categories;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'users'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.users;
+    END IF;
+END $$;
