@@ -94,9 +94,9 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Header com Sistema de Filtro Dropdown por Mês (Design Fofo Suave) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-md p-4 sm:p-4.5 rounded-3xl border border-slate-200/80 shadow-xs">
+    <div className="space-y-3.5 sm:space-y-4">
+      {/* Header com Dropdown de Seleção por Mês (Mobile First & Touch-Friendly) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100/80 shrink-0">
             <Calendar className="w-5 h-5" />
@@ -112,12 +112,12 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
           </div>
         </div>
 
-        {/* Dropdown de Seleção de Mês */}
+        {/* Dropdown de Seleção de Mês - Otimizado para Toque em Celular */}
         <div className="relative w-full sm:w-auto min-w-[240px]">
           <select
             value={selectedPeriod}
             onChange={(e) => onPeriodChange(e.target.value)}
-            className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-800 font-bold text-xs rounded-2xl pl-4 pr-10 py-2.5 transition-colors outline-none cursor-pointer appearance-none min-h-[44px]"
+            className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 font-bold text-xs rounded-2xl pl-4 pr-10 py-3 sm:py-2.5 transition-colors outline-none cursor-pointer appearance-none min-h-[48px]"
           >
             <option value="all">🌐 Todo o Período (Visão Geral)</option>
             <optgroup label="Filtrar por Mês">
@@ -132,7 +132,7 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
         </div>
       </div>
 
-      {/* Grid de Cards Principais em Estilo Fofo & Arredondado */}
+      {/* Grid de Cards Principais em Mobile First */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
         {/* Card Destaque: Valor Total (Big Number) */}
         <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
@@ -199,10 +199,10 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
         </div>
       </div>
 
-      {/* Banner de Projeção em Cards Fofos Arredondados */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Banner de Projeção em Cards Arredondados */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100 shrink-0">
+          <div className="p-2.5 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100 shrink-0">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
@@ -218,7 +218,7 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3 w-full sm:w-auto">
           {/* Card Projeção até Dia 15 */}
-          <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-3.5 py-2 text-center">
+          <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-center">
             <span className="block text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Até o Dia 15
             </span>
@@ -228,7 +228,7 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
           </div>
 
           {/* Card Projeção até Dia 30 */}
-          <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-3.5 py-2 text-center">
+          <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-center">
             <span className="block text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Até o Dia 30
             </span>

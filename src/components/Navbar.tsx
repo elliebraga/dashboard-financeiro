@@ -18,30 +18,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Logo & Title Dindin */}
-          <div className="flex items-center space-x-2.5 sm:space-x-3">
-            <div className="p-2 bg-gradient-to-tr from-emerald-500 via-teal-400 to-pink-400 text-white rounded-2xl shadow-xs">
-              <Wallet className="w-5 h-5" />
+          {/* Logo & Title Dindin Mobile-First */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-2 bg-gradient-to-tr from-emerald-500 via-teal-400 to-pink-400 text-white rounded-2xl shadow-xs shrink-0">
+              <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+              <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-1">
                 Din<span className="text-emerald-600">din</span>
-                <Sparkles className="w-4 h-4 text-pink-400 inline" />
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-400 inline" />
               </h1>
-              <p className="text-[11px] text-slate-500 hidden sm:block font-bold">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 hidden sm:block font-bold">
                 Gestão e Controle Financeiro Pessoal
               </p>
             </div>
           </div>
 
           {/* User Info & Connection Status & Settings */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             {/* Usuário Logado */}
             {currentUser && (
-              <div className="flex items-center space-x-2 bg-slate-100/80 backdrop-blur-xs pl-2.5 pr-1.5 py-1 rounded-full border border-slate-200">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs">
+              <div className="flex items-center space-x-1.5 bg-slate-100/80 backdrop-blur-xs pl-2 pr-1 py-1 rounded-full border border-slate-200">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs shrink-0">
                   {currentUser.name.charAt(0)}
                 </div>
                 <span className="text-xs font-extrabold text-slate-800 hidden md:inline">
@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
                 <button
                   onClick={onLogout}
-                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
                   title="Sair da Conta"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Status da Conexão */}
             <button
               onClick={onOpenConnectionModal}
-              className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+              className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold border transition-all min-h-[38px] ${
                 config.isConfigured
                   ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                   : 'bg-amber-50/80 text-amber-700 border-amber-200 hover:bg-amber-100'

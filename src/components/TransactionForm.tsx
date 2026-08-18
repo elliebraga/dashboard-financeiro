@@ -93,7 +93,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-xs">
+    <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs">
       <div className="flex items-center space-x-3 mb-5">
         <div className="p-2.5 bg-pink-50 text-pink-500 rounded-2xl border border-pink-100/80 shrink-0">
           <Heart className="w-5 h-5 fill-pink-100" />
@@ -113,7 +113,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Toggle Tipo de Movimentação */}
+        {/* Toggle Tipo de Movimentação - Otimizado para Toque em Celular */}
         <div>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             Tipo de Movimentação
@@ -125,7 +125,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 setType('expense');
                 setCategoryId('');
               }}
-              className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-xl font-bold text-xs transition-all active:scale-[0.98] min-h-[44px] ${
+              className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-xl font-bold text-xs transition-all active:scale-[0.98] min-h-[48px] ${
                 type === 'expense'
                   ? 'bg-white text-rose-600 shadow-xs border border-slate-200'
                   : 'text-slate-500 hover:text-slate-800'
@@ -141,7 +141,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 setType('income');
                 setCategoryId('');
               }}
-              className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-lg font-bold text-xs transition-all active:scale-[0.98] min-h-[44px] ${
+              className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-xl font-bold text-xs transition-all active:scale-[0.98] min-h-[48px] ${
                 type === 'income'
                   ? 'bg-white text-emerald-600 shadow-xs border border-slate-200'
                   : 'text-slate-500 hover:text-slate-800'
@@ -153,7 +153,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
         </div>
 
-        {/* Campo Valor & Data */}
+        {/* Campo Valor & Data (1 coluna no mobile, 2 no desktop) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
@@ -167,7 +167,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               placeholder="0,00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 font-extrabold text-base rounded-2xl pl-4 pr-4 py-2.5 transition-colors outline-none min-h-[44px]"
+              className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 font-extrabold text-base rounded-2xl pl-4 pr-4 py-3 transition-colors outline-none min-h-[48px]"
             />
           </div>
 
@@ -185,7 +185,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 onClick={handleOpenDatePicker}
-                className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 rounded-2xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px] cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:hover:opacity-80"
+                className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 rounded-2xl px-4 py-3 text-base transition-colors outline-none font-bold min-h-[48px] cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:hover:opacity-80"
               />
             </div>
           </div>
@@ -208,7 +208,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           <select
             value={categoryId}
             onChange={handleCategorySelect}
-            className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 rounded-2xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px]"
+            className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 rounded-2xl px-4 py-3 text-base transition-colors outline-none font-bold min-h-[48px]"
           >
             <option value="">Selecione uma categoria (opcional)</option>
             {filteredCategories.map((c) => (
@@ -233,7 +233,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               placeholder="Ex: Aluguel de Maio, Salário..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 rounded-2xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px]"
+              className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-900 rounded-2xl px-4 py-3 text-base transition-colors outline-none font-bold min-h-[48px]"
             />
           </div>
 
@@ -242,7 +242,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             <button
               type="button"
               onClick={() => setIsPaid(!isPaid)}
-              className={`w-full py-2.5 px-3 rounded-2xl border font-bold text-xs transition-all flex items-center justify-center space-x-2 min-h-[44px] ${
+              className={`w-full py-3 px-3 rounded-2xl border font-bold text-xs transition-all flex items-center justify-center space-x-2 min-h-[48px] ${
                 isPaid
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs'
                   : 'bg-amber-50 text-amber-700 border-amber-200 shadow-2xs'
@@ -267,7 +267,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3.5 px-4 rounded-2xl font-extrabold text-sm shadow-xs transition-all flex items-center justify-center space-x-2 text-white active:scale-[0.99] min-h-[48px] ${
+          className={`w-full py-3.5 px-4 rounded-2xl font-extrabold text-sm shadow-xs transition-all flex items-center justify-center space-x-2 text-white active:scale-[0.98] min-h-[52px] ${
             type === 'expense'
               ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/10'
               : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/10'
