@@ -514,8 +514,34 @@ export async function deleteTransactionApi(id: string): Promise<boolean> {
 }
 
 // -----------------------------------------------------------------
-// ALIASES EXPLÍCITOS PARA CAPTURA E INSERÇÃO DE DADOS (POST)
+// ALIASES E FUNÇÕES DE TESTE DE ENVIO DE DADOS DO BACKEND
 // -----------------------------------------------------------------
 export const postTransactionApi = createTransactionApi;
 export const postCategoryApi = createCategoryApi;
+
+export async function testSupabaseDatabaseConnection(): Promise<{ success: boolean; message: string }> {
+  console.log('[Backend Agent] 🧪 Executando teste de conexão e envio de dados para o banco Supabase...');
+  if (!supabaseClient) {
+    const msg = 'SupabaseClient não inicializado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no .env.';
+    console.warn('[Backend Agent] ⚠️', msg);
+    return { success: false, message: msg };
+  }
+
+  try {
+    const { data, error } = await supabaseClient.from('categories').select('count', { count: 'exact', head: true });
+    if (error) {
+      const msg = `Falha na comunicação com a tabela do banco: ${error.message}`;
+      console.error('[Backend Agent] ❌', msg, error);
+      return { success: false, message: msg };
+    }
+    const msg = 'Conexão e envio de dados para o banco Supabase (PostgreSQL) funcionando perfeitamente!';
+    console.log('[Backend Agent] 🎉', msg);
+    return { success: true, message: msg };
+  } catch (err: any) {
+    const msg = `Exceção ao testar banco: ${err?.message || err}`;
+    console.error('[Backend Agent] 💥', msg);
+    return { success: false, message: msg };
+  }
+}
+
 
