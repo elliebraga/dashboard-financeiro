@@ -200,7 +200,7 @@ export function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200/80 bg-white/50 backdrop-blur-xs py-6 text-center text-xs text-slate-500 font-bold mt-auto relative z-10">
-        <p>© 2026 Dashboard de Finanças Pessoais • Feito com carinho para Ellie & Liz 💕</p>
+        <p>© 2026 Dindin • Feito com carinho para Ellie & Liz 💕</p>
       </footer>
 
       {/* Modais Adicionais */}

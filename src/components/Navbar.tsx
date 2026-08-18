@@ -20,14 +20,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Logo & Title com Toque Fofo */}
+          {/* Logo & Title Dindin */}
           <div className="flex items-center space-x-2.5 sm:space-x-3">
             <div className="p-2 bg-gradient-to-tr from-emerald-500 via-teal-400 to-pink-400 text-white rounded-2xl shadow-xs">
               <Wallet className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-                Finanças<span className="text-emerald-600">Dash</span>
+                Din<span className="text-emerald-600">din</span>
                 <Sparkles className="w-4 h-4 text-pink-400 inline" />
               </h1>
               <p className="text-[11px] text-slate-500 hidden sm:block font-bold">

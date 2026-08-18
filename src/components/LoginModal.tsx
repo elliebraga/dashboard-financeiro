@@ -50,7 +50,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onLoginSuccess }
           <div className="w-12 h-12 bg-pink-50 text-pink-500 rounded-2xl border border-pink-100 flex items-center justify-center mx-auto shadow-xs">
             <Heart className="w-6 h-6 fill-pink-100" />
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Acesso ao Dashboard</h2>
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Acesso ao Dindin</h2>
           <p className="text-xs text-slate-500 font-bold">
             Insira suas credenciais de acesso autorizadas
           </p>
@@ -134,7 +134,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onLoginSuccess }
             ) : (
               <>
                 <LogIn className="w-5 h-5" />
-                <span>Entrar na Planilha</span>
+                <span>Entrar no Dindin</span>
               </>
             )}
           </button>
