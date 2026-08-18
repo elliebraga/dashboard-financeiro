@@ -6,6 +6,7 @@ import { TransactionTable } from './components/TransactionTable';
 import { NewCategoryModal } from './components/NewCategoryModal';
 import { ConnectionModal } from './components/ConnectionModal';
 import { FinancialSummary } from './components/FinancialSummary';
+import { MonthlyComparator } from './components/MonthlyComparator';
 import { LoginModal } from './components/LoginModal';
 import {
   fetchCategoriesApi,
@@ -132,12 +133,20 @@ export function App() {
       {/* Main Content Dashboard (só acessível quando logado) */}
       {currentUser && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
-          {/* Top: Big Numbers (Saldo Total, Receitas, Despesas) */}
+          {/* Top: Big Numbers (Saldo Total, Receitas, Despesas, Projeções 15 e 30) */}
           <BigNumberCards
             transactions={transactions}
             selectedPeriod={selectedPeriod}
             onPeriodChange={setSelectedPeriod}
           />
+
+          {/* Comparativo Mensal de Valores (Exibido na Aba "Tudo" / Todo o Período) */}
+          {selectedPeriod === 'all' && (
+            <MonthlyComparator
+              transactions={transactions}
+              categories={categories}
+            />
+          )}
 
           {/* Middle Grid: Transaction Form + Financial Summary */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
