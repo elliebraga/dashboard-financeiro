@@ -114,7 +114,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
       {/* Header Bar */}
       <Navbar
         currentUser={currentUser}
@@ -173,7 +173,7 @@ export function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-medium mt-auto">
+      <footer className="border-t border-slate-300 py-6 text-center text-xs text-slate-700 font-bold mt-auto">
         <p>© 2026 Dashboard de Finanças Pessoais — Acesso Restrito para Ellie & Liz</p>
       </footer>
 

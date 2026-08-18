@@ -7,7 +7,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-slate-50 text-slate-800 font-sans min-h-screen overflow-x-hidden;
+    @apply bg-slate-50 text-slate-900 font-sans min-h-screen overflow-x-hidden;
   }
 
   /* Impede zoom automático do iOS Safari ao focar em campos de texto */
