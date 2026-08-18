@@ -7,51 +7,39 @@ description: >-
 
 # Agente de Backend - Gestão Financeira & Supabase
 
-Este skill orienta a atuação do Agente de Backend na aplicação de gestão financeira. O agente é responsável por toda a lógica de dados, persistência, comunicação com o Supabase (PostgreSQL), segurança e otimização de consultas.
+Este skill orienta a atuação do Agente de Backend na aplicação de gestão financeira. O agente é o responsável total por todas as funções de banco de dados, persistência, comunicação com o Supabase (PostgreSQL), segurança, autenticação de usuárias e cálculos financeiros.
 
 ---
 
-## 📋 Responsabilidades do Agente de Backend
+## 📋 Processos de Backend com o Banco de Dados
 
-### 1. Modelagem do Banco de Dados & Schemas SQL
-- **Definição de DDL**: Manutenção do arquivo [`supabase_setup.sql`](file:///c:/Users/ellie/OneDrive/Documentos/planilha/supabase_setup.sql) e futuras migrations.
-- **Tabelas Principais**:
+### 1. Modelagem & Manutenção de Schemas DDL (`supabase_setup.sql`)
+- Manutenção da estrutura de dados do banco no arquivo [`supabase_setup.sql`](file:///c:/Users/ellie/OneDrive/Documentos/planilha/supabase_setup.sql).
+- **Tabelas do Banco**:
+  - `users`: `id` (UUID), `username` (TEXT UNIQUE), `password` (TEXT), `name` (TEXT), `created_at`.
   - `categories`: `id` (UUID), `name` (TEXT), `type` ('income', 'expense', 'both'), `created_at`.
-  - `transactions`: `id` (UUID), `amount` (NUMERIC), `type` ('income', 'expense'), `category_id` (FK), `date` (DATE), `description` (TEXT), `created_at`.
-- **Índices de Performance**: Índices em colunas de alta frequência de busca como `date`, `type` e `category_id`.
-- **Integridade Referencial**: Uso de `ON DELETE SET NULL` ou `CASCADE` e restrições `CHECK (amount > 0)`.
+  - `transactions`: `id` (UUID), `amount` (NUMERIC 12,2), `type` ('income', 'expense'), `category_id` (FK -> categories.id), `date` (DATE), `description` (TEXT), `created_at`.
+- **Garantia de Idempotência**: Todo script SQL utiliza `IF NOT EXISTS`, `DROP POLICY IF EXISTS` e verificação prévia de publicação Realtime.
 
-### 2. Políticas de Segurança & Row Level Security (RLS)
-- Garantir a aplicação de RLS (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`).
-- Definir políticas para permissões de leitura (`SELECT`), escrita (`INSERT`), atualização (`UPDATE`) e remoção (`DELETE`).
-- Preparação para expansão com autenticação de usuário (`auth.uid() = user_id`).
+### 2. Autenticação & Controle de Acesso (RLS)
+- Validação de acesso das usuárias autorizadas (`ellieb` e `lizfnery` com a senha `Mofsv@2507`).
+- Habilitação de **Row Level Security (RLS)** em todas as tabelas (`users`, `categories`, `transactions`).
 
-### 3. Camada de API & Serviços de Dados (`src/lib/supabase.ts`)
-- Manutenção da interface de serviços unificada que gerencia requisições assíncronas para o Supabase.
-- Implementação de **Fallback de Armazenamento Local (LocalStorage)** para garantia de funcionamento mesmo offline ou sem credenciais remotas ativas.
-- Métodos principais de backend:
-  - `fetchCategoriesApi()`: Busca categorias ordenadas por nome.
-  - `createCategoryApi(name, type)`: Inserção de novas categorias com retorno imediato do objeto gravado.
-  - `fetchTransactionsApi()`: Consulta de movimentações com join relacional `category:categories(*)`.
-  - `createTransactionApi(data)`: Gravação de receitas ou despesas com tratamento numérico.
-  - `deleteTransactionApi(id)`: Exclusão de movimentações.
+### 3. Camada de Comunicação de Dados (`src/lib/supabase.ts`)
+- Manutenção das chamadas da API de banco de dados do Supabase.
+- **Mecanismo de Fallback (LocalStorage)** para execução sem falhas mesmo quando o ambiente estiver offline.
+- Funções da API de Backend:
+  - `loginUserApi(username, password)`: Consulta e validação de usuárias.
+  - `fetchCategoriesApi()` e `createCategoryApi()`: Consulta e inserção de categorias.
+  - `fetchTransactionsApi()`: Leitura relacional de movimentações com join em categorias.
+  - `createTransactionApi()` e `deleteTransactionApi()`: Inserção e exclusão no banco.
 
-### 4. Cálculos Financeiros & Regras de Negócio
-- **Saldo Total**: $\sum (\text{Receitas}) - \sum (\text{Despesas})$.
-- **Taxa de Poupança**: $\frac{\text{Receitas} - \text{Despesas}}{\text{Receitas}} \times 100$.
-- **Projeções Temporais no Mês**:
-  - **Até Dia 15**: Acumulado de transações com `date <= YYYY-MM-15`.
-  - **Até Dia 30**: Acumulado de transações com `date <= YYYY-MM-30`.
+### 4. Processamento de Regras de Negócio & Cálculos
+- **Valor Total**: Cálculo acumulado do saldo.
+- **Taxa de Poupança**: Percentual economizado do total de entradas.
+- **Projeções do Mês**: Cálculo acumulado **Até o Dia 15** e **Até o Dia 30**.
+- **Comparativo Mensal**: Agrupamento por ano-mês com detalhamento por categoria.
 
-### 5. Configuração de Realtime & Subscrições
-- Habilitação da tabela em `supabase_realtime`.
-- Configuração de escuta de eventos via `supabase.channel('db-changes')` para atualização reativa da interface sem recarregamento da página.
-
----
-
-## 🛠️ Modos de Operação do Agente Backend
-
-Ao executar tarefas de backend, o agente deve:
-1. Atualizar o script SQL [`supabase_setup.sql`](file:///c:/Users/ellie/OneDrive/Documentos/planilha/supabase_setup.sql) com qualquer alteração de tabela ou política.
-2. Garantir que as funções da camada de API em [`src/lib/supabase.ts`](file:///c:/Users/ellie/OneDrive/Documentos/planilha/src/lib/supabase.ts) reflitam as mudanças do schema.
-3. Testar a compilação e integridade dos tipos TypeScript em [`src/types/index.ts`](file:///c:/Users/ellie/OneDrive/Documentos/planilha/src/types/index.ts).
+### 5. Sincronização em Tempo Real (Supabase Realtime)
+- Publicação de tabelas no `supabase_realtime`.
+- Inscrição em canais WebSocket para atualização imediata do frontend ao alterar o banco.
