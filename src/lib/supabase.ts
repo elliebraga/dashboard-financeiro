@@ -1,24 +1,28 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Category, Transaction, TransactionType, User } from '../types';
 
-const INITIAL_USERS: (User & { password: string })[] = [
+// Credenciais iniciais / Padrão fornecidas
+const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+// Usuários Iniciais Autorizados
+export const INITIAL_USERS: (User & { password: string })[] = [
   {
-    id: 'user-1',
+    id: 'usr-1',
     username: 'ellieb',
     password: 'Mofsv@2507',
     name: 'Ellie Braga',
-    created_at: new Date().toISOString()
   },
   {
-    id: 'user-2',
+    id: 'usr-2',
     username: 'lizfnery',
     password: 'Mofsv@2507',
     name: 'Liz Nery',
-    created_at: new Date().toISOString()
-  }
+  },
 ];
 
-const INITIAL_CATEGORIES: Category[] = [
+// Categorias iniciais para Fallback Local
+export const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-1', name: 'Salário', type: 'income' },
   { id: 'cat-2', name: 'Freelance', type: 'income' },
   { id: 'cat-3', name: 'Investimentos', type: 'income' },
@@ -29,19 +33,20 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-8', name: 'Lazer', type: 'expense' },
   { id: 'cat-9', name: 'Saúde', type: 'expense' },
   { id: 'cat-10', name: 'Educação', type: 'expense' },
-  { id: 'cat-11', name: 'Contas & Serviços', type: 'expense' },
-  { id: 'cat-12', name: 'Outras Despesas', type: 'expense' },
+  { id: 'cat-11', name: 'Outras Despesas', type: 'expense' },
 ];
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
+// Transações Iniciais de Exemplo para Fallback Local
+export const INITIAL_TRANSACTIONS: Transaction[] = [
   {
     id: 'tx-1',
-    amount: 5500.00,
+    amount: 5000.00,
     type: 'income',
     category_id: 'cat-1',
     category: { id: 'cat-1', name: 'Salário', type: 'income' },
     date: new Date().toISOString().split('T')[0],
     description: 'Salário mensal',
+    is_paid: true,
     created_at: new Date().toISOString()
   },
   {
@@ -52,6 +57,7 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     category: { id: 'cat-5', name: 'Alimentação', type: 'expense' },
     date: new Date().toISOString().split('T')[0],
     description: 'Supermercado semanal',
+    is_paid: true,
     created_at: new Date().toISOString()
   },
   {
@@ -62,6 +68,7 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     category: { id: 'cat-6', name: 'Moradia', type: 'expense' },
     date: new Date().toISOString().split('T')[0],
     description: 'Aluguel do mês',
+    is_paid: false,
     created_at: new Date().toISOString()
   },
   {
@@ -70,31 +77,21 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     type: 'income',
     category_id: 'cat-2',
     category: { id: 'cat-2', name: 'Freelance', type: 'income' },
-    date: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
-    description: 'Projeto UI/UX Figma',
+    date: new Date().toISOString().split('T')[0],
+    description: 'Projeto Frontend React',
+    is_paid: true,
     created_at: new Date().toISOString()
   }
 ];
 
+// Configuração armazenada no LocalStorage ou Padrão
 export function getStoredSupabaseConfig() {
-  const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-  const storedUrl = localStorage.getItem('financas_supabase_url') || envUrl;
-  const storedKey = localStorage.getItem('financas_supabase_key') || envKey;
-
-  const isValid = Boolean(
-    storedUrl && 
-    storedKey && 
-    storedUrl.startsWith('https://') && 
-    !storedUrl.includes('seu-projeto.supabase.co') &&
-    !storedKey.includes('sua-chave')
-  );
-
+  const url = localStorage.getItem('financas_supabase_url') || DEFAULT_SUPABASE_URL;
+  const key = localStorage.getItem('financas_supabase_key') || DEFAULT_SUPABASE_KEY;
   return {
-    url: storedUrl,
-    key: storedKey,
-    isConfigured: isValid
+    url,
+    key,
+    isConfigured: Boolean(url && key),
   };
 }
 
@@ -170,7 +167,6 @@ export async function loginUserApi(usernameInput: string, passwordInput: string)
           id: data.id,
           username: data.username,
           name: data.name,
-          created_at: data.created_at
         };
         saveUserSession(loggedUser);
         return loggedUser;
@@ -190,20 +186,19 @@ export async function loginUserApi(usernameInput: string, passwordInput: string)
       id: foundLocal.id,
       username: foundLocal.username,
       name: foundLocal.name,
-      created_at: foundLocal.created_at
     };
     saveUserSession(loggedUser);
     return loggedUser;
   }
 
-  throw new Error('Usuário ou senha incorretos.');
+  throw new Error('Usuário ou senha inválidos. Tente ellieb ou lizfnery com a senha definida.');
 }
 
 // -----------------------------------------------------------------
-// LOCALSTORAGE FALLBACK SERVICE
+// ARMAZENAMENTO LOCAL (Fallback)
 // -----------------------------------------------------------------
 
-function getLocalCategories(): Category[] {
+export function getLocalCategories(): Category[] {
   const data = localStorage.getItem('financas_categories');
   if (!data) {
     localStorage.setItem('financas_categories', JSON.stringify(INITIAL_CATEGORIES));
@@ -216,14 +211,18 @@ function getLocalCategories(): Category[] {
   }
 }
 
-function getLocalTransactions(): Transaction[] {
+export function getLocalTransactions(): Transaction[] {
   const data = localStorage.getItem('financas_transactions');
   if (!data) {
     localStorage.setItem('financas_transactions', JSON.stringify(INITIAL_TRANSACTIONS));
     return INITIAL_TRANSACTIONS;
   }
   try {
-    return JSON.parse(data);
+    const parsed: Transaction[] = JSON.parse(data);
+    return parsed.map((t) => ({
+      ...t,
+      is_paid: t.is_paid !== undefined ? t.is_paid : true,
+    }));
   } catch {
     return INITIAL_TRANSACTIONS;
   }
@@ -277,7 +276,6 @@ export async function createCategoryApi(name: string, type: TransactionType | 'b
     id: 'cat-custom-' + Date.now(),
     name: name.trim(),
     type,
-    created_at: new Date().toISOString()
   };
   const updated = [...localCategories, createdLocalCat];
   localStorage.setItem('financas_categories', JSON.stringify(updated));
@@ -296,7 +294,12 @@ export async function fetchTransactionsApi(): Promise<Transaction[]> {
         .order('date', { ascending: false });
 
       if (error) throw error;
-      if (data) return data;
+      if (data) {
+        return data.map((t: any) => ({
+          ...t,
+          is_paid: t.is_paid !== undefined ? t.is_paid : true,
+        }));
+      }
     } catch (err) {
       console.warn('Erro ao buscar transações do Supabase. Usando local:', err);
     }
@@ -307,11 +310,14 @@ export async function fetchTransactionsApi(): Promise<Transaction[]> {
   
   return transactions.map(t => ({
     ...t,
+    is_paid: t.is_paid !== undefined ? t.is_paid : true,
     category: categories.find(c => c.id === t.category_id)
   })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function createTransactionApi(transactionData: Omit<Transaction, 'id' | 'created_at'>): Promise<Transaction> {
+  const isPaid = transactionData.is_paid !== undefined ? transactionData.is_paid : true;
+
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
@@ -321,7 +327,8 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
           type: transactionData.type,
           category_id: transactionData.category_id || null,
           date: transactionData.date,
-          description: transactionData.description || null
+          description: transactionData.description || null,
+          is_paid: isPaid,
         }])
         .select(`
           *,
@@ -348,12 +355,34 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
     category: categoryObj,
     date: transactionData.date,
     description: transactionData.description || null,
+    is_paid: isPaid,
     created_at: new Date().toISOString()
   };
 
   const updated = [newLocalTx, ...transactions];
   localStorage.setItem('financas_transactions', JSON.stringify(updated));
   return newLocalTx;
+}
+
+export async function updateTransactionPaidStatusApi(id: string, is_paid: boolean): Promise<boolean> {
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient
+        .from('transactions')
+        .update({ is_paid })
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error('Erro ao atualizar status de pagamento no Supabase:', err);
+    }
+  }
+
+  const transactions = getLocalTransactions();
+  const updated = transactions.map((t) => (t.id === id ? { ...t, is_paid } : t));
+  localStorage.setItem('financas_transactions', JSON.stringify(updated));
+  return true;
 }
 
 export async function deleteTransactionApi(id: string): Promise<boolean> {

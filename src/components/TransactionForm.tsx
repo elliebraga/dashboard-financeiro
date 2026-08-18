@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowUpCircle, ArrowDownCircle, Plus, Calendar, Tag, FileText, DollarSign, Loader2 } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Plus, Calendar, Tag, FileText, DollarSign, Loader2, CheckSquare, Square } from 'lucide-react';
 import { Category, Transaction, TransactionType } from '../types';
 
 interface TransactionFormProps {
@@ -20,6 +20,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const [categoryId, setCategoryId] = useState('');
   const [date, setDate] = useState(todayStr);
   const [description, setDescription] = useState('');
+  const [isPaid, setIsPaid] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -53,6 +54,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         category_id: categoryId || null,
         date,
         description: description.trim() || null,
+        is_paid: isPaid,
       });
 
       setAmount('');
@@ -220,18 +222,45 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </select>
         </div>
 
-        {/* Descrição Opcional */}
-        <div>
-          <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-            <FileText className="w-3.5 h-3.5 text-slate-600" /> Descrição (Opcional)
-          </label>
-          <input
-            type="text"
-            placeholder="Ex: Aluguel de Maio, Salário..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-600 focus:bg-white text-slate-900 rounded-xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px]"
-          />
+        {/* Descrição Opcional & Checkbox de Status Pago/Pendente */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-end">
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <FileText className="w-3.5 h-3.5 text-slate-600" /> Descrição (Opcional)
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: Aluguel de Maio, Salário..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-600 focus:bg-white text-slate-900 rounded-xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px]"
+            />
+          </div>
+
+          {/* Toggle Checkbox Pago / Pendente */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setIsPaid(!isPaid)}
+              className={`w-full py-2.5 px-3 rounded-xl border font-extrabold text-xs transition-all flex items-center justify-center space-x-2 min-h-[44px] ${
+                isPaid
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs'
+                  : 'bg-amber-50 text-amber-800 border-amber-300 shadow-xs'
+              }`}
+            >
+              {isPaid ? (
+                <>
+                  <CheckSquare className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>Pago / Concluído</span>
+                </>
+              ) : (
+                <>
+                  <Square className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>Pendente</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Botão Submit Touch-Friendly */}

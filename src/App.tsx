@@ -13,6 +13,7 @@ import {
   fetchTransactionsApi,
   createCategoryApi,
   createTransactionApi,
+  updateTransactionPaidStatusApi,
   deleteTransactionApi,
   getStoredUserSession,
   logoutUserSession,
@@ -102,6 +103,14 @@ export function App() {
     return newCat;
   };
 
+  const handleTogglePaidStatus = async (id: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    await updateTransactionPaidStatusApi(id, newStatus);
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, is_paid: newStatus } : t))
+    );
+  };
+
   const handleDeleteTransaction = async (id: string) => {
     await deleteTransactionApi(id);
     setTransactions((prev) => prev.filter((t) => t.id !== id));
@@ -178,6 +187,7 @@ export function App() {
             transactions={displayedTransactions}
             categories={categories}
             onDeleteTransaction={handleDeleteTransaction}
+            onTogglePaidStatus={handleTogglePaidStatus}
           />
         </main>
       )}
