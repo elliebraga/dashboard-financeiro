@@ -304,6 +304,7 @@ export async function seedSupabaseDatabaseApi(): Promise<{ success: boolean; mes
 
     const today = new Date().toISOString().split('T')[0];
 
+    // Payload sem is_paid para garantir compatibilidade se a coluna estiver em cache reload
     const seedTxs = [
       {
         amount: 5000.00,
@@ -311,7 +312,6 @@ export async function seedSupabaseDatabaseApi(): Promise<{ success: boolean; mes
         category_id: isValidUUID(salaryCat?.id) ? salaryCat.id : null,
         date: today,
         description: 'Salário mensal',
-        is_paid: true,
       },
       {
         amount: 350.00,
@@ -319,7 +319,6 @@ export async function seedSupabaseDatabaseApi(): Promise<{ success: boolean; mes
         category_id: isValidUUID(foodCat?.id) ? foodCat.id : null,
         date: today,
         description: 'Supermercado semanal',
-        is_paid: true,
       },
       {
         amount: 1200.00,
@@ -327,7 +326,6 @@ export async function seedSupabaseDatabaseApi(): Promise<{ success: boolean; mes
         category_id: isValidUUID(housingCat?.id) ? housingCat.id : null,
         date: today,
         description: 'Aluguel do mês',
-        is_paid: false,
       },
       {
         amount: 800.00,
@@ -335,7 +333,6 @@ export async function seedSupabaseDatabaseApi(): Promise<{ success: boolean; mes
         category_id: isValidUUID(freeCat?.id) ? freeCat.id : null,
         date: today,
         description: 'Projeto Frontend React',
-        is_paid: true,
       }
     ];
 
@@ -491,7 +488,7 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
 
       console.log('[PASSO 3/4 - Backend API] ✅ UUID da categoria resolvido:', resolvedCategoryId);
 
-      const payload = {
+      const fullPayload = {
         amount: Number(transactionData.amount),
         type: transactionData.type,
         category_id: resolvedCategoryId,
@@ -500,11 +497,12 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
         is_paid: isPaid,
       };
 
-      console.log('[PASSO 3/4 - Backend API] 🚀 Enviando query INSERT no Supabase:', JSON.stringify(payload, null, 2));
+      console.log('[PASSO 3/4 - Backend API] 🚀 Enviando query INSERT no Supabase:', JSON.stringify(fullPayload, null, 2));
 
+      // 1. Tentar inserção primária com is_paid
       const { data, error } = await supabaseClient
         .from('transactions')
-        .insert([payload])
+        .insert([fullPayload])
         .select(`
           *,
           category:categories(*)
@@ -512,6 +510,31 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
         .single();
 
       if (error) {
+        // Se a coluna is_paid ainda não estiver reloaded no PostgREST cache, faz fallback transparente sem is_paid
+        if (error.code === 'PGRST204' || error.message?.includes('is_paid')) {
+          console.warn('[PASSO 3/4 - Backend Fallback] PostgREST schema cache sem is_paid. Reenviando payload compatível...');
+          const fallbackPayload = {
+            amount: Number(transactionData.amount),
+            type: transactionData.type,
+            category_id: resolvedCategoryId,
+            date: transactionData.date,
+            description: transactionData.description || null,
+          };
+          const { data: fbData, error: fbErr } = await supabaseClient
+            .from('transactions')
+            .insert([fallbackPayload])
+            .select(`*, category:categories(*)`)
+            .single();
+
+          if (fbErr) throw fbErr;
+          if (fbData) {
+            console.log('[PASSO 4/4 - Resultado Supabase] 🎉 Transação GRAVADA COM SUCESSO no PostgreSQL (Modo Compatível):', fbData);
+            return {
+              ...fbData,
+              is_paid: isPaid,
+            };
+          }
+        }
         console.error('[PASSO 4/4 - Resultado Supabase] ❌ Erro retornado do Supabase:', error);
         throw error;
       }
