@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
 import { BigNumberCards } from './components/BigNumberCards';
 import { TransactionForm } from './components/TransactionForm';
@@ -25,7 +25,11 @@ export function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState<'all' | 'current_month'>('current_month');
+
+  // Mês atual como padrão do dropdown (ex: '2026-08') ou 'all'
+  const now = new Date();
+  const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const [selectedPeriod, setSelectedPeriod] = useState<string>(currentYM);
 
   // Modais
   const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
@@ -113,6 +117,12 @@ export function App() {
     setCurrentUser(null);
   };
 
+  // Filtragem das transações exibidas nos gráficos e resumos com base no mês selecionado
+  const displayedTransactions = useMemo(() => {
+    if (selectedPeriod === 'all') return transactions;
+    return transactions.filter((t) => t.date && t.date.startsWith(selectedPeriod));
+  }, [transactions, selectedPeriod]);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
       {/* Header Bar */}
@@ -133,14 +143,14 @@ export function App() {
       {/* Main Content Dashboard (só acessível quando logado) */}
       {currentUser && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
-          {/* Top: Big Numbers (Saldo Total, Receitas, Despesas, Projeções 15 e 30) */}
+          {/* Top: Big Numbers com Dropdown de Seleção por Mês */}
           <BigNumberCards
             transactions={transactions}
             selectedPeriod={selectedPeriod}
             onPeriodChange={setSelectedPeriod}
           />
 
-          {/* Comparativo Mensal de Valores (Exibido na Aba "Tudo" / Todo o Período) */}
+          {/* Comparativo Mensal de Valores (Exibido quando selecionar "Todo o Período") */}
           {selectedPeriod === 'all' && (
             <MonthlyComparator
               transactions={transactions}
@@ -159,13 +169,13 @@ export function App() {
             </div>
 
             <div className="lg:col-span-1">
-              <FinancialSummary transactions={transactions} />
+              <FinancialSummary transactions={displayedTransactions} />
             </div>
           </div>
 
           {/* Bottom: Transaction Table */}
           <TransactionTable
-            transactions={transactions}
+            transactions={displayedTransactions}
             categories={categories}
             onDeleteTransaction={handleDeleteTransaction}
           />
