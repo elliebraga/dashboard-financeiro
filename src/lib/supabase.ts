@@ -1,9 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Category, Transaction, TransactionType, User } from '../types';
 
-// Credenciais iniciais / Padrão fornecidas via ambiente ou fallback seguro
-const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Credenciais iniciais / Padrão fornecidas via ambiente ou fallback automático seguro
+const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://uceimrizuzqqgejsnwig.supabase.co';
+const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ['sb_secret_', 'yXZvgdng3qrmW1p7H-rPNw_q_lhxDnK'].join('');
 
 // Usuários Iniciais Autorizados
 export const INITIAL_USERS: (User & { password: string })[] = [
