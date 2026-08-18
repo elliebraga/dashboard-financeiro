@@ -1,12 +1,19 @@
 import React from 'react';
-import { Wallet, Database, CheckCircle2, AlertCircle, Settings } from 'lucide-react';
+import { Wallet, Database, CheckCircle2, AlertCircle, Settings, LogOut, User as UserIcon } from 'lucide-react';
 import { getStoredSupabaseConfig } from '../lib/supabase';
+import { User } from '../types';
 
 interface NavbarProps {
+  currentUser: User | null;
   onOpenConnectionModal: () => void;
+  onLogout: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenConnectionModal }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  currentUser,
+  onOpenConnectionModal,
+  onLogout,
+}) => {
   const config = getStoredSupabaseConfig();
 
   return (
@@ -28,8 +35,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenConnectionModal }) => {
             </div>
           </div>
 
-          {/* Connection Status & Settings */}
+          {/* User Info & Connection Status & Settings */}
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Usuário Logado */}
+            {currentUser && (
+              <div className="flex items-center space-x-2 bg-slate-100 pl-2.5 pr-1.5 py-1 rounded-full border border-slate-200">
+                <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-extrabold">
+                  {currentUser.name.charAt(0)}
+                </div>
+                <span className="text-xs font-extrabold text-slate-800 hidden md:inline">
+                  {currentUser.name}
+                </span>
+                <button
+                  onClick={onLogout}
+                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"
+                  title="Sair da Conta"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Status da Conexão */}
             <button
               onClick={onOpenConnectionModal}
               className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
@@ -40,9 +67,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenConnectionModal }) => {
             >
               <Database className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">
-                {config.isConfigured ? 'Supabase Conectado' : 'Modo Demo (Local)'}
-              </span>
-              <span className="sm:hidden">
                 {config.isConfigured ? 'Supabase' : 'Demo'}
               </span>
               {config.isConfigured ? (

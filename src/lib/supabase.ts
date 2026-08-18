@@ -1,5 +1,22 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Category, Transaction, TransactionType } from '../types';
+import { Category, Transaction, TransactionType, User } from '../types';
+
+const INITIAL_USERS: (User & { password: string })[] = [
+  {
+    id: 'user-1',
+    username: 'ellieb',
+    password: 'Mofsv@2507',
+    name: 'Ellie Braga',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'user-2',
+    username: 'lizfnery',
+    password: 'Mofsv@2507',
+    name: 'Liz Nery',
+    created_at: new Date().toISOString()
+  }
+];
 
 const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-1', name: 'Salário', type: 'income' },
@@ -59,7 +76,6 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
   }
 ];
 
-// Helper para obter configuração salva ou de variáveis de ambiente
 export function getStoredSupabaseConfig() {
   const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -109,7 +125,82 @@ export function updateSupabaseConfig(url: string, key: string) {
 }
 
 // -----------------------------------------------------------------
-// LOCALSTORAGE FALLBACK SERVICE (Quando Supabase não estiver conectado)
+// GERENCIAMENTO DE SESSÃO DO USUÁRIO
+// -----------------------------------------------------------------
+
+export function getStoredUserSession(): User | null {
+  const data = localStorage.getItem('financas_user_session');
+  if (!data) return null;
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
+export function saveUserSession(user: User) {
+  localStorage.setItem('financas_user_session', JSON.stringify(user));
+}
+
+export function logoutUserSession() {
+  localStorage.removeItem('financas_user_session');
+}
+
+// -----------------------------------------------------------------
+// API DE AUTENTICAÇÃO
+// -----------------------------------------------------------------
+
+export async function loginUserApi(usernameInput: string, passwordInput: string): Promise<User> {
+  const cleanUsername = usernameInput.trim().toLowerCase();
+  const cleanPassword = passwordInput.trim();
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('users')
+        .select('*')
+        .ilike('username', cleanUsername)
+        .eq('password', cleanPassword)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Erro ao autenticar no Supabase:', error);
+      } else if (data) {
+        const loggedUser: User = {
+          id: data.id,
+          username: data.username,
+          name: data.name,
+          created_at: data.created_at
+        };
+        saveUserSession(loggedUser);
+        return loggedUser;
+      }
+    } catch (err) {
+      console.warn('Erro ao consultar tabela users no Supabase:', err);
+    }
+  }
+
+  // Fallback Local
+  const foundLocal = INITIAL_USERS.find(
+    u => u.username.toLowerCase() === cleanUsername && u.password === cleanPassword
+  );
+
+  if (foundLocal) {
+    const loggedUser: User = {
+      id: foundLocal.id,
+      username: foundLocal.username,
+      name: foundLocal.name,
+      created_at: foundLocal.created_at
+    };
+    saveUserSession(loggedUser);
+    return loggedUser;
+  }
+
+  throw new Error('Usuário ou senha incorretos.');
+}
+
+// -----------------------------------------------------------------
+// LOCALSTORAGE FALLBACK SERVICE
 // -----------------------------------------------------------------
 
 function getLocalCategories(): Category[] {
@@ -139,7 +230,7 @@ function getLocalTransactions(): Transaction[] {
 }
 
 // -----------------------------------------------------------------
-// API SERVICE (Interface Unificada Supabase / Local)
+// API SERVICE (Categories & Transactions)
 // -----------------------------------------------------------------
 
 export async function fetchCategoriesApi(): Promise<Category[]> {
@@ -152,10 +243,9 @@ export async function fetchCategoriesApi(): Promise<Category[]> {
 
       if (error) throw error;
       if (data && data.length > 0) return data;
-      // Se não houver categorias no banco remoto, insere as padrão
       return getLocalCategories();
     } catch (err) {
-      console.warn('Erro ao carregar categorias do Supabase. Usando armazenamento local:', err);
+      console.warn('Erro ao carregar categorias do Supabase. Usando local:', err);
     }
   }
   return getLocalCategories();
@@ -182,7 +272,6 @@ export async function createCategoryApi(name: string, type: TransactionType | 'b
     }
   }
 
-  // Fallback Local
   const localCategories = getLocalCategories();
   const createdLocalCat: Category = {
     id: 'cat-custom-' + Date.now(),
@@ -209,15 +298,13 @@ export async function fetchTransactionsApi(): Promise<Transaction[]> {
       if (error) throw error;
       if (data) return data;
     } catch (err) {
-      console.warn('Erro ao buscar transações do Supabase. Usando armazenamento local:', err);
+      console.warn('Erro ao buscar transações do Supabase. Usando local:', err);
     }
   }
 
-  // Fallback Local
   const transactions = getLocalTransactions();
   const categories = getLocalCategories();
   
-  // Join com categoria
   return transactions.map(t => ({
     ...t,
     category: categories.find(c => c.id === t.category_id)
@@ -249,7 +336,6 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
     }
   }
 
-  // Fallback Local
   const transactions = getLocalTransactions();
   const categories = getLocalCategories();
   const categoryObj = categories.find(c => c.id === transactionData.category_id);
@@ -285,7 +371,6 @@ export async function deleteTransactionApi(id: string): Promise<boolean> {
     }
   }
 
-  // Fallback Local
   const transactions = getLocalTransactions();
   const filtered = transactions.filter(t => t.id !== id);
   localStorage.setItem('financas_transactions', JSON.stringify(filtered));

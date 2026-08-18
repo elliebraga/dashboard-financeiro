@@ -6,17 +6,21 @@ import { TransactionTable } from './components/TransactionTable';
 import { NewCategoryModal } from './components/NewCategoryModal';
 import { ConnectionModal } from './components/ConnectionModal';
 import { FinancialSummary } from './components/FinancialSummary';
+import { LoginModal } from './components/LoginModal';
 import {
   fetchCategoriesApi,
   fetchTransactionsApi,
   createCategoryApi,
   createTransactionApi,
   deleteTransactionApi,
+  getStoredUserSession,
+  logoutUserSession,
   supabaseClient,
 } from './lib/supabase';
-import { Category, Transaction, TransactionType } from './types';
+import { Category, Transaction, TransactionType, User } from './types';
 
 export function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(getStoredUserSession());
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +32,7 @@ export function App() {
   const [categoryModalType, setCategoryModalType] = useState<TransactionType>('expense');
 
   const loadData = useCallback(async () => {
+    if (!currentUser) return;
     setLoading(true);
     try {
       const [cats, txs] = await Promise.all([
@@ -41,7 +46,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     loadData();
@@ -49,7 +54,7 @@ export function App() {
 
   // Supabase Realtime Listener
   useEffect(() => {
-    if (!supabaseClient) return;
+    if (!supabaseClient || !currentUser) return;
 
     const channel = supabaseClient
       .channel('db-changes')
@@ -74,7 +79,7 @@ export function App() {
         supabaseClient.removeChannel(channel);
       }
     };
-  }, [loadData]);
+  }, [loadData, currentUser]);
 
   const handleAddTransaction = async (
     data: Omit<Transaction, 'id' | 'created_at'>
@@ -102,49 +107,68 @@ export function App() {
     setIsNewCategoryModalOpen(true);
   };
 
+  const handleLogout = () => {
+    logoutUserSession();
+    setCurrentUser(null);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
       {/* Header Bar */}
-      <Navbar onOpenConnectionModal={() => setIsConnectionModalOpen(true)} />
+      <Navbar
+        currentUser={currentUser}
+        onOpenConnectionModal={() => setIsConnectionModalOpen(true)}
+        onLogout={handleLogout}
+      />
 
-      {/* Main Content Dashboard */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Top: Big Numbers (Saldo Total, Receitas, Despesas) */}
-        <BigNumberCards
-          transactions={transactions}
-          selectedPeriod={selectedPeriod}
-          onPeriodChange={setSelectedPeriod}
-        />
+      {/* Se não estiver autenticado, exibe o LoginModal */}
+      <LoginModal
+        isOpen={!currentUser}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+        }}
+      />
 
-        {/* Middle Grid: Transaction Form + Financial Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <TransactionForm
-              categories={categories}
-              onAddTransaction={handleAddTransaction}
-              onOpenNewCategoryModal={handleOpenCategoryModal}
-            />
+      {/* Main Content Dashboard (só acessível quando logado) */}
+      {currentUser && (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+          {/* Top: Big Numbers (Saldo Total, Receitas, Despesas) */}
+          <BigNumberCards
+            transactions={transactions}
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
+          />
+
+          {/* Middle Grid: Transaction Form + Financial Summary */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="lg:col-span-2">
+              <TransactionForm
+                categories={categories}
+                onAddTransaction={handleAddTransaction}
+                onOpenNewCategoryModal={handleOpenCategoryModal}
+              />
+            </div>
+
+            <div className="lg:col-span-1">
+              <FinancialSummary transactions={transactions} />
+            </div>
           </div>
 
-          <div className="lg:col-span-1">
-            <FinancialSummary transactions={transactions} />
-          </div>
-        </div>
-
-        {/* Bottom: Transaction Table */}
-        <TransactionTable
-          transactions={transactions}
-          categories={categories}
-          onDeleteTransaction={handleDeleteTransaction}
-        />
-      </main>
+          {/* Bottom: Transaction Table */}
+          <TransactionTable
+            transactions={transactions}
+            categories={categories}
+            onDeleteTransaction={handleDeleteTransaction}
+          />
+        </main>
+      )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-medium">
-        <p>© 2026 Dashboard de Finanças Pessoais — Integrado com Supabase & PostgreSQL</p>
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-medium mt-auto">
+        <p>© 2026 Dashboard de Finanças Pessoais — Acesso Restrito para Ellie & Liz</p>
       </footer>
 
-      {/* Modais */}
+      {/* Modais Adicionais */}
       <ConnectionModal
         isOpen={isConnectionModalOpen}
         onClose={() => setIsConnectionModalOpen(false)}
