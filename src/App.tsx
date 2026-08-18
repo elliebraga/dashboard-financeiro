@@ -90,8 +90,15 @@ export function App() {
   const handleAddTransaction = async (
     data: Omit<Transaction, 'id' | 'created_at'>
   ) => {
-    const newTx = await createTransactionApi(data);
-    setTransactions((prev) => [newTx, ...prev]);
+    console.log('[PASSO 2/4 - App.tsx] 📥 Recebendo payload no App handler:', data);
+    try {
+      const newTx = await createTransactionApi(data);
+      console.log('[PASSO 2/4 - App.tsx] 🎉 Transação criada com sucesso retornado do backend:', newTx);
+      setTransactions((prev) => [newTx, ...prev]);
+    } catch (err) {
+      console.error('[PASSO 2/4 - App.tsx] 💥 Erro ao chamar createTransactionApi no backend:', err);
+      throw err;
+    }
   };
 
   const handleCreateCategory = async (

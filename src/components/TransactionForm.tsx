@@ -32,36 +32,46 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[PASSO 1/4 - Formulario] 🏁 Iniciando captura dos dados do formulário...');
+
     const numAmount = parseFloat(amount.replace(',', '.'));
 
     if (isNaN(numAmount) || numAmount <= 0) {
+      console.warn('[PASSO 1/4 - Formulario] ⚠️ Valor inválido digitado:', amount);
       setError('Por favor, informe um valor válido maior que zero.');
       return;
     }
 
     if (!date) {
+      console.warn('[PASSO 1/4 - Formulario] ⚠️ Data não selecionada.');
       setError('Por favor, selecione uma data para a transação.');
       return;
     }
+
+    const payload: Omit<Transaction, 'id' | 'created_at'> = {
+      type,
+      amount: numAmount,
+      category_id: categoryId || null,
+      date,
+      description: description.trim() || null,
+      is_paid: isPaid,
+    };
+
+    console.log('[PASSO 1/4 - Formulario] 📦 Payload JSON capturado com sucesso:', JSON.stringify(payload, null, 2));
 
     setError('');
     setLoading(true);
 
     try {
-      await onAddTransaction({
-        type,
-        amount: numAmount,
-        category_id: categoryId || null,
-        date,
-        description: description.trim() || null,
-        is_paid: isPaid,
-      });
+      console.log('[PASSO 1/4 - Formulario] 📤 Disparando onAddTransaction(payload) para o App/Backend...');
+      await onAddTransaction(payload);
+      console.log('[PASSO 1/4 - Formulario] ✅ onAddTransaction concluído com sucesso. Limpando campos...');
 
       setAmount('');
       setDescription('');
     } catch (err) {
-      console.error(err);
-      setError('Erro ao salvar transação. Tente novamente.');
+      console.error('[PASSO 1/4 - Formulario] 💥 Erro ao enviar formulário:', err);
+      setError('Erro ao salvar transação. Verifique o console para mais detalhes.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +123,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Toggle Tipo de Movimentação - Otimizado para Toque em Celular */}
+        {/* Toggle Tipo de Movimentação */}
         <div>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             Tipo de Movimentação
@@ -153,7 +163,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
         </div>
 
-        {/* Campo Valor & Data (1 coluna no mobile, 2 no desktop) */}
+        {/* Campo Valor & Data */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">

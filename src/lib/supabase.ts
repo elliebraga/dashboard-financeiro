@@ -388,15 +388,20 @@ export async function fetchTransactionsApi(): Promise<Transaction[]> {
 }
 
 export async function createTransactionApi(transactionData: Omit<Transaction, 'id' | 'created_at'>): Promise<Transaction> {
+  console.log('[PASSO 3/4 - Backend API] 📥 Recebendo dados na função createTransactionApi:', transactionData);
+
   const isPaid = transactionData.is_paid !== undefined ? transactionData.is_paid : true;
 
   if (supabaseClient) {
     try {
-      // Resolve UUID válido da categoria para evitar violação de Foreign Key no PostgreSQL
+      console.log('[PASSO 3/4 - Backend API] 🔍 Resolvendo UUID de categoria para:', transactionData.category_id);
+      
       const resolvedCategoryId = await resolveSupabaseCategoryId(
         transactionData.category_id,
         transactionData.type
       );
+
+      console.log('[PASSO 3/4 - Backend API] ✅ UUID da categoria resolvido:', resolvedCategoryId);
 
       const payload = {
         amount: Number(transactionData.amount),
@@ -406,6 +411,8 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
         description: transactionData.description || null,
         is_paid: isPaid,
       };
+
+      console.log('[PASSO 3/4 - Backend API] 🚀 Enviando query INSERT no Supabase:', JSON.stringify(payload, null, 2));
 
       const { data, error } = await supabaseClient
         .from('transactions')
@@ -417,23 +424,26 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
         .single();
 
       if (error) {
-        console.error('Erro do Supabase ao inserir transação no banco:', error);
+        console.error('[PASSO 4/4 - Resultado Supabase] ❌ Erro retornado do Supabase:', error);
         throw error;
       }
 
       if (data) {
-        console.log('Transação salva com sucesso no banco Supabase:', data);
+        console.log('[PASSO 4/4 - Resultado Supabase] 🎉 Transação GRAVADA COM SUCESSO no PostgreSQL:', data);
         return {
           ...data,
           is_paid: data.is_paid !== undefined ? data.is_paid : true,
         };
       }
-    } catch (err) {
-      console.error('Erro ao criar transação no banco Supabase:', err);
+    } catch (err: any) {
+      console.error('[PASSO 4/4 - Resultado Supabase] 💥 Exceção ao gravar no banco Supabase:', err);
     }
+  } else {
+    console.warn('[PASSO 3/4 - Backend API] ⚠️ supabaseClient é NULL. Usando LocalStorage fallback.');
   }
 
   // Fallback para LocalStorage se o Supabase não estiver configurado ou ocorrer falha de rede
+  console.log('[PASSO 4/4 - Fallback] 💾 Salvando transação no LocalStorage fallback...');
   const transactions = getLocalTransactions();
   const categories = getLocalCategories();
   const categoryObj = categories.find(c => c.id === transactionData.category_id);
