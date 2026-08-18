@@ -36,7 +36,7 @@ export const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-11', name: 'Outras Despesas', type: 'expense' },
 ];
 
-// Transações Iniciais de Exemplo para Fallback Local
+// Transações Iniciais de Exemplo para Fallback Local e Seed no Banco
 export const INITIAL_TRANSACTIONS: Transaction[] = [
   {
     id: 'tx-1',
@@ -286,6 +286,78 @@ async function resolveSupabaseCategoryId(
 }
 
 // -----------------------------------------------------------------
+// FUNÇÃO DE SEMEADURA INICIAL NO BANCO DE DADOS (SEED)
+// -----------------------------------------------------------------
+
+export async function seedSupabaseDatabaseApi(): Promise<{ success: boolean; message: string; count: number }> {
+  if (!supabaseClient) {
+    return { success: false, message: 'SupabaseClient não está inicializado.', count: 0 };
+  }
+
+  try {
+    console.log('[Supabase Seed] 🌱 Iniciando semeadura de categorias e transações no Supabase...');
+    const categories = await fetchCategoriesApi();
+    const salaryCat = categories.find(c => c.name.toLowerCase().includes('salário')) || categories[0];
+    const foodCat = categories.find(c => c.name.toLowerCase().includes('alimentação')) || categories[0];
+    const housingCat = categories.find(c => c.name.toLowerCase().includes('moradia')) || categories[0];
+    const freeCat = categories.find(c => c.name.toLowerCase().includes('freelance')) || categories[0];
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const seedTxs = [
+      {
+        amount: 5000.00,
+        type: 'income',
+        category_id: isValidUUID(salaryCat?.id) ? salaryCat.id : null,
+        date: today,
+        description: 'Salário mensal',
+        is_paid: true,
+      },
+      {
+        amount: 350.00,
+        type: 'expense',
+        category_id: isValidUUID(foodCat?.id) ? foodCat.id : null,
+        date: today,
+        description: 'Supermercado semanal',
+        is_paid: true,
+      },
+      {
+        amount: 1200.00,
+        type: 'expense',
+        category_id: isValidUUID(housingCat?.id) ? housingCat.id : null,
+        date: today,
+        description: 'Aluguel do mês',
+        is_paid: false,
+      },
+      {
+        amount: 800.00,
+        type: 'income',
+        category_id: isValidUUID(freeCat?.id) ? freeCat.id : null,
+        date: today,
+        description: 'Projeto Frontend React',
+        is_paid: true,
+      }
+    ];
+
+    const { data, error } = await supabaseClient
+      .from('transactions')
+      .insert(seedTxs)
+      .select();
+
+    if (error) {
+      console.error('[Supabase Seed] ❌ Erro ao semear transações:', error);
+      return { success: false, message: `Erro no Supabase: ${error.message}`, count: 0 };
+    }
+
+    console.log('[Supabase Seed] 🎉 Transações semeadas com sucesso:', data);
+    return { success: true, message: `${data?.length || 0} transações gravadas no Supabase!`, count: data?.length || 0 };
+  } catch (err: any) {
+    console.error('[Supabase Seed] 💥 Exceção ao semear:', err);
+    return { success: false, message: `Exceção ao semear: ${err?.message || err}`, count: 0 };
+  }
+}
+
+// -----------------------------------------------------------------
 // API SERVICE (Categories & Transactions)
 // -----------------------------------------------------------------
 
@@ -366,7 +438,23 @@ export async function fetchTransactionsApi(): Promise<Transaction[]> {
         .order('date', { ascending: false });
 
       if (error) throw error;
+      
       if (data) {
+        if (data.length === 0) {
+          console.log('[Supabase Auto-Seed] Tabela transactions no banco Supabase está vazia. Semeando dados iniciais...');
+          await seedSupabaseDatabaseApi();
+          const { data: reFetched } = await supabaseClient
+            .from('transactions')
+            .select(`*, category:categories(*)`)
+            .order('date', { ascending: false });
+          if (reFetched && reFetched.length > 0) {
+            return reFetched.map((t: any) => ({
+              ...t,
+              is_paid: t.is_paid !== undefined ? t.is_paid : true,
+            }));
+          }
+        }
+
         return data.map((t: any) => ({
           ...t,
           is_paid: t.is_paid !== undefined ? t.is_paid : true,
@@ -514,7 +602,7 @@ export async function deleteTransactionApi(id: string): Promise<boolean> {
 }
 
 // -----------------------------------------------------------------
-// ALIASES E FUNÇÕES DE TESTE DE ENVIO DE DADOS DO BACKEND
+// ALIASES E FUNÇÕES DE TESTE E SEMEADURA DE DADOS DO BACKEND
 // -----------------------------------------------------------------
 export const postTransactionApi = createTransactionApi;
 export const postCategoryApi = createCategoryApi;
@@ -543,5 +631,3 @@ export async function testSupabaseDatabaseConnection(): Promise<{ success: boole
     return { success: false, message: msg };
   }
 }
-
-

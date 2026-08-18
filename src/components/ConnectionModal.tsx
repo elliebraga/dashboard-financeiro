@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Database, Check, FileText, Key, Link as LinkIcon } from 'lucide-react';
-import { getStoredSupabaseConfig, updateSupabaseConfig } from '../lib/supabase';
+import { X, Database, Check, FileText, Key, Link as LinkIcon, Sparkles, Loader2 } from 'lucide-react';
+import { getStoredSupabaseConfig, updateSupabaseConfig, seedSupabaseDatabaseApi } from '../lib/supabase';
 
 interface ConnectionModalProps {
   isOpen: boolean;
@@ -17,6 +17,8 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({
   const [url, setUrl] = useState(currentConfig.url);
   const [key, setKey] = useState(currentConfig.key);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [seedMsg, setSeedMsg] = useState('');
 
   if (!isOpen) return null;
 
@@ -36,6 +38,22 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({
     setKey('');
     updateSupabaseConfig('', '');
     onConfigSaved();
+  };
+
+  const handleSeedDatabase = async () => {
+    setSeeding(true);
+    setSeedMsg('');
+    try {
+      const res = await seedSupabaseDatabaseApi();
+      setSeedMsg(res.message);
+      if (res.success) {
+        onConfigSaved();
+      }
+    } catch (err: any) {
+      setSeedMsg('Erro ao semear banco: ' + (err?.message || err));
+    } finally {
+      setSeeding(false);
+    }
   };
 
   return (
@@ -59,6 +77,12 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({
             </p>
           </div>
         </div>
+
+        {seedMsg && (
+          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold">
+            {seedMsg}
+          </div>
+        )}
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
@@ -87,13 +111,28 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({
             />
           </div>
 
-          <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-2xl text-xs text-slate-600 space-y-1.5 font-medium">
+          <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-2xl text-xs text-slate-600 space-y-2 font-medium">
             <div className="flex items-center gap-1.5 font-bold text-slate-800">
-              <FileText className="w-4 h-4 text-emerald-600" /> Script SQL
+              <FileText className="w-4 h-4 text-emerald-600" /> Script SQL & Semeadura
             </div>
             <p>
-              Execute <code className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200 font-bold">supabase_setup.sql</code> no SQL Editor do Supabase.
+               Execute <code className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200 font-bold">supabase_setup.sql</code> no SQL Editor do Supabase.
             </p>
+            <button
+              type="button"
+              onClick={handleSeedDatabase}
+              disabled={seeding}
+              className="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+            >
+              {seeding ? (
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>Semear Dados Iniciais no Supabase</span>
+                </>
+              )}
+            </button>
           </div>
 
           <div className="pt-2 flex items-center justify-between gap-3">
