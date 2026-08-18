@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowUpCircle, ArrowDownCircle, Plus, Calendar, Tag, FileText, DollarSign, Loader2, CheckSquare, Square, Heart } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Save, Calendar, Tag, FileText, DollarSign, Loader2, CheckSquare, Square, Heart, CheckCircle2, Database } from 'lucide-react';
 import { Category, Transaction, TransactionType } from '../types';
 
 interface TransactionFormProps {
@@ -23,6 +23,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const [isPaid, setIsPaid] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,18 +61,24 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     console.log('[PASSO 1/4 - Formulario] 📦 Payload JSON capturado com sucesso:', JSON.stringify(payload, null, 2));
 
     setError('');
+    setSuccessMsg('');
     setLoading(true);
 
     try {
-      console.log('[PASSO 1/4 - Formulario] 📤 Disparando onAddTransaction(payload) para o App/Backend...');
+      console.log('[PASSO 1/4 - Formulario] 📤 Disparando requisição de salvamento no banco de dados...');
       await onAddTransaction(payload);
-      console.log('[PASSO 1/4 - Formulario] ✅ onAddTransaction concluído com sucesso. Limpando campos...');
+      console.log('[PASSO 1/4 - Formulario] ✅ Transação salva no banco com sucesso! Limpando formulário...');
 
+      setSuccessMsg('🎉 Registro salvo com sucesso no banco de dados!');
       setAmount('');
       setDescription('');
+
+      setTimeout(() => {
+        setSuccessMsg('');
+      }, 4000);
     } catch (err) {
       console.error('[PASSO 1/4 - Formulario] 💥 Erro ao enviar formulário:', err);
-      setError('Erro ao salvar transação. Verifique o console para mais detalhes.');
+      setError('Erro ao salvar transação no banco. Verifique o console para mais detalhes.');
     } finally {
       setLoading(false);
     }
@@ -104,21 +111,35 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
   return (
     <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs overflow-hidden">
-      <div className="flex items-center space-x-3 mb-5">
-        <div className="p-2.5 bg-pink-50 text-pink-500 rounded-2xl border border-pink-100/80 shrink-0">
-          <Heart className="w-5 h-5 fill-pink-100" />
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 bg-pink-50 text-pink-500 rounded-2xl border border-pink-100/80 shrink-0">
+            <Heart className="w-5 h-5 fill-pink-100" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Nova Transação</h2>
+            <p className="text-xs text-slate-500 font-medium">
+              Cadastre e envie para o banco de dados Supabase
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Nova Transação</h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Cadastre uma receita ou despesa no sistema
-          </p>
+
+        <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-100">
+          <Database className="w-3.5 h-3.5" />
+          <span>Banco Conectado</span>
         </div>
       </div>
 
       {error && (
         <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold">
           {error}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-extrabold flex items-center space-x-2 animate-in fade-in duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -273,23 +294,26 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
         </div>
 
-        {/* Botão Submit Touch-Friendly Arredondado */}
+        {/* Botão de Salvar no Banco de Dados Destacado */}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3.5 px-4 rounded-2xl font-extrabold text-sm shadow-xs transition-all flex items-center justify-center space-x-2 text-white active:scale-[0.98] min-h-[52px] ${
+          className={`w-full py-3.5 px-4 rounded-2xl font-extrabold text-sm shadow-md transition-all flex items-center justify-center space-x-2 text-white active:scale-[0.98] min-h-[52px] ${
             type === 'expense'
-              ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/10'
-              : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/10'
+              ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'
+              : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20'
           }`}
         >
           {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Gravando no Banco de Dados...</span>
+            </>
           ) : (
             <>
-              <Plus className="w-5 h-5" />
+              <Save className="w-5 h-5" />
               <span>
-                {type === 'expense' ? 'Adicionar Despesa' : 'Adicionar Recebimento'}
+                {type === 'expense' ? 'Salvar Despesa no Banco' : 'Salvar Recebimento no Banco'}
               </span>
             </>
           )}
