@@ -94,9 +94,9 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
   };
 
   return (
-    <div className="space-y-3.5 sm:space-y-4">
-      {/* Header com Dropdown de Seleção por Mês (Mobile First & Touch-Friendly) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+    <div className="space-y-3.5 sm:space-y-4 w-full">
+      {/* Header com Dropdown de Seleção por Mês */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100/80 shrink-0">
             <Calendar className="w-5 h-5" />
@@ -112,7 +112,7 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
           </div>
         </div>
 
-        {/* Dropdown de Seleção de Mês - Otimizado para Toque em Celular */}
+        {/* Dropdown de Seleção de Mês */}
         <div className="relative w-full sm:w-auto min-w-[240px]">
           <select
             value={selectedPeriod}
@@ -132,15 +132,15 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
         </div>
       </div>
 
-      {/* Grid de Cards Principais em Mobile First */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-        {/* Card Destaque: Valor Total (Big Number) */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+      {/* Grid de Cards Principais com Paddings Garantidos (p-5 sm:p-6) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+        {/* Card 1: Valor Total (Big Number) */}
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
               Valor Total
             </span>
-            <div className={`p-2.5 rounded-2xl border ${
+            <div className={`p-2.5 rounded-2xl border shrink-0 ${
               balance >= 0 
                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
                 : 'bg-rose-50 text-rose-600 border-rose-100'
@@ -150,63 +150,63 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
           </div>
 
           <div className="space-y-1">
-            <div className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
+            <div className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight break-all ${
               balance >= 0 ? 'text-slate-900' : 'text-rose-600'
             }`}>
               {formatCurrency(balance)}
             </div>
-            <p className="text-xs text-slate-500 flex items-center gap-1.5 pt-0.5 font-bold">
+            <p className="text-xs text-slate-500 flex items-center gap-1.5 pt-1 font-bold">
               <PiggyBank className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               Taxa de Poupança: <span className="font-extrabold text-emerald-600">{savingsRate}%</span>
             </p>
           </div>
         </div>
 
-        {/* Card Menor: Total de Receitas */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex sm:block items-center justify-between">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
+        {/* Card 2: Total de Receitas */}
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex items-center justify-between gap-3 overflow-hidden">
+          <div className="min-w-0 flex-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1 truncate">
               Total Receitas (+ Entrada)
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-emerald-600">
+            <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 break-all">
               {formatCurrency(totalIncome)}
             </div>
-            <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block">
+            <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block truncate">
               Entradas no período selecionado
             </p>
           </div>
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shrink-0">
-            <TrendingUp className="w-4 h-4" />
+            <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Card Menor: Total de Despesas */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex sm:block items-center justify-between">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
+        {/* Card 3: Total de Despesas */}
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex items-center justify-between gap-3 overflow-hidden">
+          <div className="min-w-0 flex-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1 truncate">
               Total Despesas (- Saída)
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-rose-600">
+            <div className="text-xl sm:text-2xl font-extrabold text-rose-600 break-all">
               {formatCurrency(totalExpense)}
             </div>
-            <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block">
+            <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block truncate">
               Saídas no período selecionado
             </p>
           </div>
           <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 shrink-0">
-            <TrendingDown className="w-4 h-4" />
+            <TrendingDown className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Banner de Projeção em Cards Arredondados */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100 shrink-0">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1 truncate">
               <CalendarDays className="w-3.5 h-3.5 text-sky-600 shrink-0" />
               Projeções {selectedPeriod === 'all' ? 'no Mês Atual' : `para ${formatMonthLabel(selectedPeriod)}`}
             </h3>
