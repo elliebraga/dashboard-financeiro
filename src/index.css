@@ -7,7 +7,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-slate-50 text-slate-900 font-sans min-h-screen overflow-x-hidden;
+    @apply bg-slate-50 text-slate-800 font-sans min-h-screen overflow-x-hidden;
   }
 
   /* Impede zoom automático do iOS Safari ao focar em campos de texto */
@@ -16,19 +16,19 @@
   }
 }
 
-/* Custom light scrollbars */
+/* Custom soft pastel scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

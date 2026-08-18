@@ -133,8 +133,14 @@ export function App() {
   }, [transactions, selectedPeriod]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Header Bar */}
+    <div className="min-h-screen bg-gradient-to-br from-rose-50/40 via-slate-50 to-teal-50/40 text-slate-800 flex flex-col font-sans selection:bg-pink-100 selection:text-pink-900 relative overflow-hidden">
+      {/* Background com Círculos Desfocados Pastéis (Aesthetic Fofo) */}
+      <div className="w-[500px] h-[500px] bg-pink-200/40 rounded-full blur-3xl absolute -top-20 -left-20 pointer-events-none animate-pulse duration-1000"></div>
+      <div className="w-[500px] h-[500px] bg-emerald-200/40 rounded-full blur-3xl absolute top-1/3 -right-20 pointer-events-none"></div>
+      <div className="w-[450px] h-[450px] bg-sky-200/40 rounded-full blur-3xl absolute bottom-10 left-1/3 pointer-events-none"></div>
+      <div className="w-[350px] h-[350px] bg-amber-200/30 rounded-full blur-3xl absolute top-2/3 left-10 pointer-events-none"></div>
+
+      {/* Header Bar Flutuante e Suave */}
       <Navbar
         currentUser={currentUser}
         onOpenConnectionModal={() => setIsConnectionModalOpen(true)}
@@ -151,7 +157,7 @@ export function App() {
 
       {/* Main Content Dashboard (só acessível quando logado) */}
       {currentUser && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 relative z-10">
           {/* Top: Big Numbers com Dropdown de Seleção por Mês */}
           <BigNumberCards
             transactions={transactions}
@@ -193,8 +199,8 @@ export function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-300 py-6 text-center text-xs text-slate-700 font-bold mt-auto">
-        <p>© 2026 Dashboard de Finanças Pessoais — Acesso Restrito para Ellie & Liz</p>
+      <footer className="border-t border-slate-200/80 bg-white/50 backdrop-blur-xs py-6 text-center text-xs text-slate-500 font-bold mt-auto relative z-10">
+        <p>© 2026 Dashboard de Finanças Pessoais • Feito com carinho para Ellie & Liz 💕</p>
       </footer>
 
       {/* Modais Adicionais */}

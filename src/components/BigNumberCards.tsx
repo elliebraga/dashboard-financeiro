@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, PiggyBank, Calendar, Clock, CalendarDays, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, PiggyBank, Calendar, Clock, CalendarDays, ChevronDown, Sparkles } from 'lucide-react';
 import { Transaction } from '../types';
 
 interface BigNumberCardsProps {
@@ -16,10 +16,9 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
   const now = new Date();
   const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-  // Extrai lista única de meses disponíveis nas transações (ex: ['2026-08', '2026-07', ...])
   const availableMonths = useMemo(() => {
     const set = new Set<string>();
-    set.add(currentYM); // Garante que o mês atual sempre exista na lista
+    set.add(currentYM);
 
     transactions.forEach((t) => {
       if (t.date && t.date.length >= 7) {
@@ -44,7 +43,6 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
     return `${isCurrent ? 'Mês Atual • ' : ''}${name} de ${yearStr}`;
   };
 
-  // Filtragem das transações pelo período selecionado
   const filteredTransactions = transactions.filter((t) => {
     if (selectedPeriod === 'all') return true;
     return t.date && t.date.startsWith(selectedPeriod);
@@ -62,7 +60,6 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
 
   const savingsRate = totalIncome > 0 ? Math.max(0, Math.round(((totalIncome - totalExpense) / totalIncome) * 100)) : 0;
 
-  // Determinar o ano e mês para o cálculo das projeções (15 e 30)
   const targetYear = selectedPeriod === 'all' ? now.getFullYear() : parseInt(selectedPeriod.split('-')[0], 10);
   const targetMonthIdx = selectedPeriod === 'all' ? now.getMonth() : parseInt(selectedPeriod.split('-')[1], 10) - 1;
 
@@ -98,15 +95,16 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      {/* Header com Sistema de Filtro Dropdown por Mês */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-300 shadow-xs">
-        <div className="flex items-center space-x-2.5">
-          <div className="p-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shrink-0">
+      {/* Header com Sistema de Filtro Dropdown por Mês (Design Fofo Suave) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-md p-4 sm:p-4.5 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100/80 shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
               Consulta por Período
+              <Sparkles className="w-3 h-3 text-amber-400" />
             </h2>
             <p className="text-xs text-slate-700 font-bold">
               Selecione o mês desejado para ver o balanço
@@ -119,35 +117,33 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
           <select
             value={selectedPeriod}
             onChange={(e) => onPeriodChange(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-600 focus:bg-white text-slate-900 font-extrabold text-sm rounded-xl pl-4 pr-10 py-2.5 transition-colors outline-none cursor-pointer appearance-none min-h-[44px]"
+            className="w-full bg-slate-50/80 border border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-800 font-bold text-xs rounded-2xl pl-4 pr-10 py-2.5 transition-colors outline-none cursor-pointer appearance-none min-h-[44px]"
           >
-            <option value="all" className="font-extrabold text-slate-900">
-              🌐 Todo o Período (Visão Geral)
-            </option>
+            <option value="all">🌐 Todo o Período (Visão Geral)</option>
             <optgroup label="Filtrar por Mês">
               {availableMonths.map((ym) => (
-                <option key={ym} value={ym} className="font-bold text-slate-900">
+                <option key={ym} value={ym}>
                   {formatMonthLabel(ym)}
                 </option>
               ))}
             </optgroup>
           </select>
-          <ChevronDown className="w-4 h-4 text-slate-600 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
 
-      {/* Grid de Cards Principais */}
+      {/* Grid de Cards Principais em Estilo Fofo & Arredondado */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
         {/* Card Destaque: Valor Total (Big Number) */}
-        <div className="bg-white border border-slate-300 rounded-2xl p-4 sm:p-6 shadow-xs hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Valor Total
             </span>
-            <div className={`p-2 sm:p-2.5 rounded-xl border ${
+            <div className={`p-2.5 rounded-2xl border ${
               balance >= 0 
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                : 'bg-rose-50 text-rose-700 border-rose-200'
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                : 'bg-rose-50 text-rose-600 border-rose-100'
             }`}>
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
@@ -155,66 +151,66 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
 
           <div className="space-y-1">
             <div className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
-              balance >= 0 ? 'text-slate-900' : 'text-rose-700'
+              balance >= 0 ? 'text-slate-900' : 'text-rose-600'
             }`}>
               {formatCurrency(balance)}
             </div>
-            <p className="text-xs text-slate-700 flex items-center gap-1.5 pt-0.5 font-bold">
-              <PiggyBank className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-              Taxa de Poupança: <span className="font-extrabold text-emerald-800">{savingsRate}%</span>
+            <p className="text-xs text-slate-500 flex items-center gap-1.5 pt-0.5 font-bold">
+              <PiggyBank className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              Taxa de Poupança: <span className="font-extrabold text-emerald-600">{savingsRate}%</span>
             </p>
           </div>
         </div>
 
         {/* Card Menor: Total de Receitas */}
-        <div className="bg-white border border-slate-300 rounded-2xl p-4 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex sm:block items-center justify-between">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex sm:block items-center justify-between">
           <div>
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700 block mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
               Total Receitas (+ Entrada)
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold text-emerald-700">
+            <div className="text-xl sm:text-2xl font-bold text-emerald-600">
               {formatCurrency(totalIncome)}
             </div>
-            <p className="text-[11px] text-slate-600 font-bold mt-1 hidden sm:block">
+            <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block">
               Entradas no período selecionado
             </p>
           </div>
-          <div className="p-2 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shrink-0">
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shrink-0">
             <TrendingUp className="w-4 h-4" />
           </div>
         </div>
 
         {/* Card Menor: Total de Despesas */}
-        <div className="bg-white border border-slate-300 rounded-2xl p-4 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex sm:block items-center justify-between">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs hover:shadow-md transition-shadow flex sm:block items-center justify-between">
           <div>
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700 block mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
               Total Despesas (- Saída)
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold text-rose-700">
+            <div className="text-xl sm:text-2xl font-bold text-rose-600">
               {formatCurrency(totalExpense)}
             </div>
-            <p className="text-[11px] text-slate-600 font-bold mt-1 hidden sm:block">
+            <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block">
               Saídas no período selecionado
             </p>
           </div>
-          <div className="p-2 sm:p-2.5 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 shrink-0">
+          <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 shrink-0">
             <TrendingDown className="w-4 h-4" />
           </div>
         </div>
       </div>
 
-      {/* Banner de Projeção de Valor Acumulado (Até Dia 15 e Até Dia 30) */}
-      <div className="bg-white border border-slate-300 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Banner de Projeção em Cards Fofos Arredondados */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-slate-100 text-slate-800 rounded-xl border border-slate-300 shrink-0">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700" />
+          <div className="p-2 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100 shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1">
-              <CalendarDays className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+              <CalendarDays className="w-3.5 h-3.5 text-sky-600 shrink-0" />
               Projeções {selectedPeriod === 'all' ? 'no Mês Atual' : `para ${formatMonthLabel(selectedPeriod)}`}
             </h3>
-            <p className="text-[11px] text-slate-700 font-bold leading-tight">
+            <p className="text-[11px] text-slate-500 font-medium leading-tight">
               Saldo estimado acumulado com transações agendadas
             </p>
           </div>
@@ -222,21 +218,21 @@ export const BigNumberCards: React.FC<BigNumberCardsProps> = ({
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3 w-full sm:w-auto">
           {/* Card Projeção até Dia 15 */}
-          <div className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-center">
-            <span className="block text-[10px] sm:text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+          <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-3.5 py-2 text-center">
+            <span className="block text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Até o Dia 15
             </span>
-            <span className={`text-sm sm:text-base font-extrabold ${until15thBalance >= 0 ? 'text-slate-900' : 'text-rose-700'}`}>
+            <span className={`text-sm sm:text-base font-extrabold ${until15thBalance >= 0 ? 'text-slate-800' : 'text-rose-600'}`}>
               {formatCurrency(until15thBalance)}
             </span>
           </div>
 
           {/* Card Projeção até Dia 30 */}
-          <div className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-center">
-            <span className="block text-[10px] sm:text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+          <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-3.5 py-2 text-center">
+            <span className="block text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Até o Dia 30
             </span>
-            <span className={`text-sm sm:text-base font-extrabold ${until30thBalance >= 0 ? 'text-slate-900' : 'text-rose-700'}`}>
+            <span className={`text-sm sm:text-base font-extrabold ${until30thBalance >= 0 ? 'text-slate-800' : 'text-rose-600'}`}>
               {formatCurrency(until30thBalance)}
             </span>
           </div>
