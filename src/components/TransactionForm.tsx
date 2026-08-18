@@ -93,7 +93,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4.5 sm:p-6 shadow-xs">
+    <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs overflow-hidden">
       <div className="flex items-center space-x-3 mb-5">
         <div className="p-2.5 bg-pink-50 text-pink-500 rounded-2xl border border-pink-100/80 shrink-0">
           <Heart className="w-5 h-5 fill-pink-100" />
