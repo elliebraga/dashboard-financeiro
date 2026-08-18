@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Search, Filter, Trash2, Calendar, Tag, AlertCircle } from 'lucide-react';
 import { Transaction, Category } from '../types';
+import { ConfirmModal } from './ConfirmModal';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -17,6 +18,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Estado para o Modal de Confirmação de Exclusão (Substitui caixa de diálogo nativa)
+  const [deleteConfirmTxId, setDeleteConfirmTxId] = useState<string | null>(null);
 
   const sortedTransactions = [...transactions].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -51,14 +55,15 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     return dateStr;
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
-      setDeletingId(id);
-      try {
-        await onDeleteTransaction(id);
-      } finally {
-        setDeletingId(null);
-      }
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmTxId) return;
+    const id = deleteConfirmTxId;
+    setDeletingId(id);
+    try {
+      await onDeleteTransaction(id);
+    } finally {
+      setDeletingId(null);
+      setDeleteConfirmTxId(null);
     }
   };
 
@@ -77,7 +82,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             </p>
           </div>
 
-          {/* Filtro por tipo (Touch-friendly no Mobile) */}
+          {/* Filtro por tipo */}
           <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto">
             <button
               onClick={() => setFilterType('all')}
@@ -202,7 +207,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                   </div>
 
                   <button
-                    onClick={() => handleDelete(tx.id)}
+                    onClick={() => setDeleteConfirmTxId(tx.id)}
                     disabled={deletingId === tx.id}
                     className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
                     title="Excluir Transação"
@@ -318,7 +323,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                     {/* Ações */}
                     <td className="py-4 px-6 whitespace-nowrap text-center">
                       <button
-                        onClick={() => handleDelete(tx.id)}
+                        onClick={() => setDeleteConfirmTxId(tx.id)}
                         disabled={deletingId === tx.id}
                         className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                         title="Excluir Transação"
@@ -333,6 +338,18 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Modal Personalizado de Confirmação de Exclusão (Substitui o window.confirm) */}
+      <ConfirmModal
+        isOpen={Boolean(deleteConfirmTxId)}
+        title="Excluir Transação"
+        message="Tem certeza que deseja excluir esta movimentação financeira? Esta ação removerá a transação permanentemente."
+        confirmText="Sim, Excluir"
+        cancelText="Cancelar"
+        isDanger={true}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteConfirmTxId(null)}
+      />
     </div>
   );
 };
