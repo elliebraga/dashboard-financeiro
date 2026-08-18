@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ArrowUpCircle, ArrowDownCircle, Plus, Calendar, Tag, FileText, DollarSign, Loader2 } from 'lucide-react';
 import { Category, Transaction, TransactionType } from '../types';
 
@@ -22,6 +22,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const filteredCategories = categories.filter(
     (c) => c.type === 'both' || c.type === type
@@ -70,6 +72,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       setCategoryId('');
     } else {
       setCategoryId(val);
+    }
+  };
+
+  const handleOpenDatePicker = () => {
+    const input = dateInputRef.current;
+    if (input) {
+      try {
+        if (typeof input.showPicker === 'function') {
+          input.showPicker();
+        } else {
+          input.focus();
+        }
+      } catch (err) {
+        input.focus();
+      }
     }
   };
 
@@ -153,15 +170,22 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <label 
+              onClick={handleOpenDatePicker}
+              className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1 cursor-pointer"
+            >
               <Calendar className="w-3.5 h-3.5 text-emerald-700" /> Data da Transação
             </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-600 focus:bg-white text-slate-900 rounded-xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px]"
-            />
+            <div className="relative">
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                onClick={handleOpenDatePicker}
+                className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-600 focus:bg-white text-slate-900 rounded-xl px-4 py-2.5 text-base transition-colors outline-none font-bold min-h-[44px] cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-1 [&::-webkit-calendar-picker-indicator]:hover:opacity-80"
+              />
+            </div>
           </div>
         </div>
 
