@@ -84,10 +84,15 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   }
 ];
 
-// Configuração armazenada no LocalStorage ou Padrão
+// Configuração armazenada no LocalStorage ou Padrão Automático
 export function getStoredSupabaseConfig() {
-  const url = localStorage.getItem('financas_supabase_url') || DEFAULT_SUPABASE_URL;
-  const key = localStorage.getItem('financas_supabase_key') || DEFAULT_SUPABASE_KEY;
+  const storedUrl = localStorage.getItem('financas_supabase_url');
+  const storedKey = localStorage.getItem('financas_supabase_key');
+
+  // Se o LocalStorage estiver em branco ou inválido, usa sempre o banco Supabase configurado
+  const url = (storedUrl && storedUrl.trim()) ? storedUrl.trim() : DEFAULT_SUPABASE_URL;
+  const key = (storedKey && storedKey.trim()) ? storedKey.trim() : DEFAULT_SUPABASE_KEY;
+
   return {
     url,
     key,
