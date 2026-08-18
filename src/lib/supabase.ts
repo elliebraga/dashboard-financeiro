@@ -502,3 +502,10 @@ export async function deleteTransactionApi(id: string): Promise<boolean> {
   localStorage.setItem('financas_transactions', JSON.stringify(filtered));
   return true;
 }
+
+// -----------------------------------------------------------------
+// ALIASES EXPLÍCITOS PARA CAPTURA E INSERÇÃO DE DADOS (POST)
+// -----------------------------------------------------------------
+export const postTransactionApi = createTransactionApi;
+export const postCategoryApi = createCategoryApi;
+
