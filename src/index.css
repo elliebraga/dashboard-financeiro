@@ -7,43 +7,30 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-slate-950 text-slate-100 font-sans min-h-screen overflow-x-hidden;
+    @apply bg-slate-50 text-slate-800 font-sans min-h-screen overflow-x-hidden;
   }
 
-  /* Impede zoom automático do iOS Safari em campos de texto */
+  /* Impede zoom automático do iOS Safari ao focar em campos de texto */
   input, select, textarea {
     font-size: 16px !important;
   }
 }
 
-/* Glassmorphism utility shortcuts */
-.glass-card {
-  @apply bg-slate-900/60 backdrop-blur-md border border-slate-800/80 shadow-xl;
-}
-
-.glass-modal {
-  @apply bg-slate-900/90 backdrop-blur-xl border border-slate-800 shadow-2xl;
-}
-
-.glass-input {
-  @apply bg-slate-950/70 border border-slate-800/90 focus:border-emerald-500 focus:bg-slate-950 text-white rounded-xl outline-none transition-all;
-}
-
-/* Custom dark scrollbars */
+/* Custom light scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }

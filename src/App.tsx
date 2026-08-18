@@ -114,11 +114,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950 relative overflow-hidden">
-      {/* Ambient background blur glows */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/3 right-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
       {/* Header Bar */}
       <Navbar
         currentUser={currentUser}
@@ -136,7 +132,7 @@ export function App() {
 
       {/* Main Content Dashboard (só acessível quando logado) */}
       {currentUser && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 relative z-10">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
           {/* Top: Big Numbers (Saldo Total, Receitas, Despesas, Projeções 15 e 30) */}
           <BigNumberCards
             transactions={transactions}
@@ -177,7 +173,7 @@ export function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 font-medium mt-auto relative z-10">
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-medium mt-auto">
         <p>© 2026 Dashboard de Finanças Pessoais — Acesso Restrito para Ellie & Liz</p>
       </footer>
 
