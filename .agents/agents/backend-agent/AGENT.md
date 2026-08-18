@@ -2,49 +2,29 @@
 name: backend-agent
 description: >-
   Subagente autônomo especialista em Engenharia de Backend, Banco de Dados PostgreSQL/Supabase, 
-  funções de captura e envio de dados (POST/PUT/DELETE), modelagem DDL, segurança RLS, APIs de dados e sincronização em tempo real.
+  rotas HTTP/REST, métodos de dados (POST/GET/PATCH/DELETE), modelagem DDL, segurança RLS, APIs de dados e sincronização em tempo real.
 ---
 
 # Agente de Backend (Backend Subagent)
 
-Você é o **Agente de Backend** responsável por executar **TODAS as funções e processos necessários para o envio, gravação e manutenção de dados no banco de dados Supabase (PostgreSQL)** deste sistema de gestão financeira.
+Você é o **Agente de Backend** responsável por executar **TODAS as rotas, métodos e processos de gravação no banco de dados Supabase (PostgreSQL)** deste sistema de gestão financeira.
 
 ---
 
-## 🎯 Funções de Envio de Dados Executadas pelo Agente de Backend
+## 🗺️ Tabela de Rotas REST & Métodos da Aplicação
 
-### 1. Inserção de Transações (POST / INSERT)
-- **Função**: `createTransactionApi(payload)` / `postTransactionApi(payload)`
-- **Atuação**:
-  1. Captura o payload com `amount`, `type`, `category_id`, `date`, `description` e `is_paid`.
-  2. Executa a resolução de UUID (`resolveSupabaseCategoryId`) para converter qualquer identificador em um **UUID válido do PostgreSQL**.
-  3. Envia a query de gravação `INSERT INTO public.transactions`.
-  4. Retorna a transação gravada com JOIN relacional da categoria.
-
-### 2. Inserção de Categorias (POST / INSERT)
-- **Função**: `createCategoryApi(name, type)` / `postCategoryApi(name, type)`
-- **Atuação**:
-  1. Sanitiza o nome e o tipo da categoria.
-  2. Envia a query `INSERT INTO public.categories`.
-  3. Retorna a nova categoria com o UUID gerado pelo banco.
-
-### 3. Atualização de Status de Pagamento (PUT / UPDATE)
-- **Função**: `updateTransactionPaidStatusApi(id, is_paid)`
-- **Atuação**:
-  1. Valida o UUID da transação.
-  2. Envia a query `UPDATE public.transactions SET is_paid = $1 WHERE id = $2`.
-
-### 4. Exclusão de Registros (DELETE)
-- **Função**: `deleteTransactionApi(id)`
-- **Atuação**:
-  1. Valida o UUID da transação.
-  2. Envia a instrução `DELETE FROM public.transactions WHERE id = $1`.
-
-### 5. Autenticação & Teste de Conexão
-- **Funções**: `loginUserApi()` e `testSupabaseDatabaseConnection()`
-- **Atuação**:
-  1. Consulta a tabela `users` para validar login das usuárias autorizadas (`ellieb` e `lizfnery`).
-  2. Executa teste de integridade da conexão de envio de dados com o Supabase.
+| Operação | Método TypeScript (`src/lib/supabase.ts`) | Método HTTP | Endpoints / Rotas Supabase REST | Tabela do Banco |
+| :--- | :--- | :--- | :--- | :--- |
+| **Autenticar Usuária** | `loginUserApi(username, password)` | `POST / GET` | `/rest/v1/users?username=eq.{user}&password=eq.{pass}` | `public.users` |
+| **Listar Categorias** | `fetchCategoriesApi()` | `GET` | `/rest/v1/categories?select=*&order=name.asc` | `public.categories` |
+| **Criar Categoria (POST)** | `postCategoryApi(name, type)` / `createCategoryApi` | `POST` | `/rest/v1/categories` | `public.categories` |
+| **Listar Transações** | `fetchTransactionsApi()` | `GET` | `/rest/v1/transactions?select=*,category:categories(*)&order=date.desc` | `public.transactions` |
+| **Criar Transação (POST)** | `postTransactionApi(payload)` / `createTransactionApi` | `POST` | `/rest/v1/transactions` | `public.transactions` |
+| **Atualizar Status Pago (PATCH)** | `updateTransactionPaidStatusApi(id, is_paid)` | `PATCH` | `/rest/v1/transactions?id=eq.{id}` | `public.transactions` |
+| **Excluir Transação (DELETE)** | `deleteTransactionApi(id)` | `DELETE` | `/rest/v1/transactions?id=eq.{id}` | `public.transactions` |
+| **Semear Dados Iniciais** | `seedSupabaseDatabaseApi()` | `POST` | `/rest/v1/transactions` + `/rest/v1/categories` | `public.transactions` |
+| **Testar Conexão** | `testSupabaseDatabaseConnection()` | `HEAD / GET` | `/rest/v1/categories?select=count` | `public.categories` |
+| **Realtime WebSockets** | `supabaseClient.channel('db-changes')` | `WSS` | `wss://<sua-url>.supabase.co/realtime/v1/websocket` | Realtime Pub/Sub |
 
 ---
 

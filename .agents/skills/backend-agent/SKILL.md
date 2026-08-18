@@ -1,57 +1,83 @@
 ---
 name: backend-agent
 description: >-
-  Agente de Backend especializado em banco de dados Supabase (PostgreSQL), modelagem de schemas SQL, 
-  captura, validação e envio de dados (POST/PUT/DELETE), políticas de segurança RLS, serviços de dados API, subscrições em tempo real e cálculos financeiros.
+  Agente de Backend especializado em banco de dados Supabase (PostgreSQL), rotas REST, métodos de dados (POST/GET/PATCH/DELETE), 
+  modelagem DDL, segurança RLS, subscrições WebSocket e cálculos financeiros.
 ---
 
 # Agente de Backend - Gestão Financeira & Supabase
 
-Este skill orienta a atuação do Agente de Backend na aplicação de gestão financeira. O agente é o responsável total por todas as funções de banco de dados, captura, sanitização, envio e gravação de dados (POST/PUT/DELETE), persistência, comunicação com o Supabase (PostgreSQL), segurança RLS, autenticação de usuárias e cálculos financeiros.
+Este skill orienta a atuação do Agente de Backend na aplicação de gestão financeira. O agente é o responsável total por todas as funções de banco de dados, captura, sanitização, envio e gravação de dados (POST/PUT/PATCH/DELETE), persistência, comunicação com o Supabase (PostgreSQL), segurança RLS, autenticação de usuárias e cálculos financeiros.
 
 ---
 
-## 📋 Funções do Agente de Backend para Envio de Dados ao Banco
+## 🗺️ Mapeamento de Rotas HTTP, Endpoints REST e Métodos da Aplicação
 
-### 1. Funções da API de Backend (`src/lib/supabase.ts`)
-O Agente de Backend gerencia e executa todas as funções responsáveis pelo envio e alteração de dados no PostgreSQL:
+| Operação | Método da API (`src/lib/supabase.ts`) | Método HTTP | Endpoints / Rotas Supabase REST | Tabela do Banco |
+| :--- | :--- | :--- | :--- | :--- |
+| **Autenticar Usuária** | `loginUserApi(username, password)` | `POST / GET` | `/rest/v1/users?username=eq.{user}&password=eq.{pass}` | `public.users` |
+| **Listar Categorias** | `fetchCategoriesApi()` | `GET` | `/rest/v1/categories?select=*&order=name.asc` | `public.categories` |
+| **Criar Categoria (POST)** | `postCategoryApi(name, type)` / `createCategoryApi` | `POST` | `/rest/v1/categories` | `public.categories` |
+| **Listar Transações** | `fetchTransactionsApi()` | `GET` | `/rest/v1/transactions?select=*,category:categories(*)&order=date.desc` | `public.transactions` |
+| **Criar Transação (POST)** | `postTransactionApi(payload)` / `createTransactionApi` | `POST` | `/rest/v1/transactions` | `public.transactions` |
+| **Atualizar Status Pago (PATCH)** | `updateTransactionPaidStatusApi(id, is_paid)` | `PATCH` | `/rest/v1/transactions?id=eq.{id}` | `public.transactions` |
+| **Excluir Transação (DELETE)** | `deleteTransactionApi(id)` | `DELETE` | `/rest/v1/transactions?id=eq.{id}` | `public.transactions` |
+| **Semear Dados Iniciais** | `seedSupabaseDatabaseApi()` | `POST` | `/rest/v1/transactions` + `/rest/v1/categories` | `public.transactions` |
+| **Testar Conexão** | `testSupabaseDatabaseConnection()` | `HEAD / GET` | `/rest/v1/categories?select=count` | `public.categories` |
+| **Realtime WebSockets** | `supabaseClient.channel('db-changes')` | `WSS` | `wss://<sua-url>.supabase.co/realtime/v1/websocket` | Realtime Pub/Sub |
 
-- **`postTransactionApi` / `createTransactionApi(payload)`**:
-  - Captura os dados da transação (`amount`, `type`, `category_id`, `date`, `description`, `is_paid`).
-  - Converte e resolve o `category_id` para um **UUID válido do PostgreSQL**.
-  - Executa a query `INSERT INTO public.transactions` no banco de dados.
-  - Retorna o registro inserido com os dados relacionais da categoria (`category:categories(*)`).
+---
 
-- **`postCategoryApi` / `createCategoryApi(name, type)`**:
-  - Higieniza o nome da categoria.
-  - Executa o `INSERT INTO public.categories (name, type)` no banco de dados.
-  - Retorna a nova categoria cadastrada com seu UUID gerado.
+## 📋 Detalhamento dos Métodos do Backend (`src/lib/supabase.ts`)
 
-- **`updateTransactionPaidStatusApi(id, is_paid)`**:
-  - Valida o UUID da transação.
-  - Executa a query `UPDATE public.transactions SET is_paid = $1 WHERE id = $2` para alterar o status no banco de dados.
+### 1. Inserção de Transações (POST / INSERT)
+- **Método**: `postTransactionApi(payload)` / `createTransactionApi(payload)`
+- **Rota REST**: `POST /rest/v1/transactions`
+- **Payload Enviado**:
+  ```json
+  {
+    "amount": 150.50,
+    "type": "expense",
+    "category_id": "8f3b2a19-4c8d-4e9a-9b12-3f5e6a7b8c9d",
+    "date": "2026-08-18",
+    "description": "Supermercado Semanal",
+    "is_paid": true
+  }
+  ```
 
-- **`deleteTransactionApi(id)`**:
-  - Valida o UUID da transação.
-  - Executa a query `DELETE FROM public.transactions WHERE id = $1` para remover permanentemente a transação do banco.
+### 2. Cadastro de Categoria (POST / INSERT)
+- **Método**: `postCategoryApi(name, type)` / `createCategoryApi(name, type)`
+- **Rota REST**: `POST /rest/v1/categories`
+- **Payload Enviado**:
+  ```json
+  {
+    "name": "Assinaturas & Streaming",
+    "type": "expense"
+  }
+  ```
 
-- **`loginUserApi(username, password)`**:
-  - Consulta e valida credenciais na tabela `public.users`.
+### 3. Atualização de Status Pago / Pendente (PATCH / UPDATE)
+- **Método**: `updateTransactionPaidStatusApi(id, is_paid)`
+- **Rota REST**: `PATCH /rest/v1/transactions?id=eq.{id}`
+- **Payload Enviado**:
+  ```json
+  {
+    "is_paid": true
+  }
+  ```
 
-- **`testSupabaseDatabaseConnection()`**:
-  - Testa e diagnostica se o canal de envio e a chave do Supabase estão ativos e gravando no PostgreSQL.
+### 4. Remoção de Transação (DELETE)
+- **Método**: `deleteTransactionApi(id)`
+- **Rota REST**: `DELETE /rest/v1/transactions?id=eq.{id}`
 
 ---
 
 ## 🛡️ Segurança & Schemas do Banco (`supabase_setup.sql`)
 
-### 2. Schemas & Tabelas DDL
+### 5. Schemas & Tabelas DDL
 - `users`: Armazenamento de usuárias autorizadas (`ellieb` e `lizfnery`).
 - `categories`: Armazenamento de categorias com chaves primárias **UUID**.
 - `transactions`: Armazenamento de receitas/despesas com chave estrangeira `category_id REFERENCES public.categories(id)` e coluna `is_paid`.
 
-### 3. Políticas de Acesso RLS (Row Level Security)
+### 6. Políticas de Acesso RLS (Row Level Security)
 - Todas as tabelas possuem a regra completa `CREATE POLICY ... FOR ALL USING (true) WITH CHECK (true)` garantindo que todas as inserções e atualizações enviadas pelo backend sejam gravadas com sucesso.
-
-### 4. Sincronização em Tempo Real (Supabase Realtime)
-- Inserções, alterações e exclusões publicadas no canal WebSocket `supabase_realtime`, notificando todos os clientes conectados instantaneamente.
