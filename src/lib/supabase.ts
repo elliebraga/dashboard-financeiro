@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Category, Transaction, TransactionType, User } from '../types';
 
-// Credenciais iniciais / Padrão fornecidas
+// Credenciais iniciais / Padrão fornecidas via ambiente ou fallback seguro
 const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const DEFAULT_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
@@ -21,7 +21,7 @@ export const INITIAL_USERS: (User & { password: string })[] = [
   },
 ];
 
-// Categorias iniciais para Fallback Local
+// Categorias iniciais para Fallback Local e Seed no Banco
 export const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-1', name: 'Salário', type: 'income' },
   { id: 'cat-2', name: 'Freelance', type: 'income' },
@@ -119,6 +119,13 @@ export function updateSupabaseConfig(url: string, key: string) {
     localStorage.removeItem('financas_supabase_key');
   }
   supabaseClient = createSupabaseClientInstance();
+}
+
+// Helper para validar UUID em PostgreSQL
+export function isValidUUID(uuid: string | null | undefined): boolean {
+  if (!uuid) return false;
+  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return regex.test(uuid);
 }
 
 // -----------------------------------------------------------------
@@ -229,6 +236,56 @@ export function getLocalTransactions(): Transaction[] {
 }
 
 // -----------------------------------------------------------------
+// HELPER BACKEND: RESOLVER CATEGORIA NO SUPABASE (UUID SAFETY)
+// -----------------------------------------------------------------
+
+async function resolveSupabaseCategoryId(
+  categoryIdOrName: string | null | undefined,
+  type: TransactionType = 'expense'
+): Promise<string | null> {
+  if (!categoryIdOrName || !supabaseClient) return null;
+
+  // Se já for um UUID válido, retorna diretamente
+  if (isValidUUID(categoryIdOrName)) {
+    return categoryIdOrName;
+  }
+
+  // Procura no Supabase se a categoria existe por ID local ou Nome (ex: 'Salário', 'cat-1')
+  const localCategories = getLocalCategories();
+  const localObj = localCategories.find(c => c.id === categoryIdOrName);
+  const categoryName = localObj ? localObj.name : categoryIdOrName;
+
+  try {
+    const { data: existingCat } = await supabaseClient
+      .from('categories')
+      .select('id')
+      .ilike('name', categoryName.trim())
+      .maybeSingle();
+
+    if (existingCat && existingCat.id) {
+      return existingCat.id;
+    }
+
+    // Se não existir no Supabase, cria automaticamente para obter um UUID válido
+    const { data: newCat, error: insertErr } = await supabaseClient
+      .from('categories')
+      .insert([{ name: categoryName.trim(), type: localObj?.type || type }])
+      .select('id')
+      .single();
+
+    if (insertErr) {
+      console.warn('Não foi possível inserir categoria de fallback no Supabase:', insertErr);
+      return null;
+    }
+
+    return newCat?.id || null;
+  } catch (err) {
+    console.warn('Erro ao resolver UUID da categoria no Supabase:', err);
+    return null;
+  }
+}
+
+// -----------------------------------------------------------------
 // API SERVICE (Categories & Transactions)
 // -----------------------------------------------------------------
 
@@ -241,8 +298,22 @@ export async function fetchCategoriesApi(): Promise<Category[]> {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      if (data && data.length > 0) return data;
-      return getLocalCategories();
+      
+      if (data && data.length > 0) {
+        return data;
+      } else {
+        // Se a tabela no Supabase estiver vazia, popula com as categorias padrão automaticamente
+        console.log('Semeando categorias padrão no banco de dados Supabase...');
+        const seedInsert = INITIAL_CATEGORIES.map(c => ({ name: c.name, type: c.type }));
+        const { data: seeded } = await supabaseClient
+          .from('categories')
+          .insert(seedInsert)
+          .select();
+        
+        if (seeded && seeded.length > 0) {
+          return seeded;
+        }
+      }
     } catch (err) {
       console.warn('Erro ao carregar categorias do Supabase. Usando local:', err);
     }
@@ -251,30 +322,31 @@ export async function fetchCategoriesApi(): Promise<Category[]> {
 }
 
 export async function createCategoryApi(name: string, type: TransactionType | 'both' = 'both'): Promise<Category> {
-  const newCat = {
-    name: name.trim(),
-    type
-  };
+  const cleanName = name.trim();
 
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
         .from('categories')
-        .insert([newCat])
+        .insert([{ name: cleanName, type }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro de inserção de categoria no Supabase:', error);
+        throw error;
+      }
+
       if (data) return data;
     } catch (err) {
-      console.error('Erro ao criar categoria no Supabase:', err);
+      console.error('Erro ao criar categoria no Supabase. Salvando localmente:', err);
     }
   }
 
   const localCategories = getLocalCategories();
   const createdLocalCat: Category = {
     id: 'cat-custom-' + Date.now(),
-    name: name.trim(),
+    name: cleanName,
     type,
   };
   const updated = [...localCategories, createdLocalCat];
@@ -320,29 +392,48 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
 
   if (supabaseClient) {
     try {
+      // Resolve UUID válido da categoria para evitar violação de Foreign Key no PostgreSQL
+      const resolvedCategoryId = await resolveSupabaseCategoryId(
+        transactionData.category_id,
+        transactionData.type
+      );
+
+      const payload = {
+        amount: Number(transactionData.amount),
+        type: transactionData.type,
+        category_id: resolvedCategoryId,
+        date: transactionData.date,
+        description: transactionData.description || null,
+        is_paid: isPaid,
+      };
+
       const { data, error } = await supabaseClient
         .from('transactions')
-        .insert([{
-          amount: Number(transactionData.amount),
-          type: transactionData.type,
-          category_id: transactionData.category_id || null,
-          date: transactionData.date,
-          description: transactionData.description || null,
-          is_paid: isPaid,
-        }])
+        .insert([payload])
         .select(`
           *,
           category:categories(*)
         `)
         .single();
 
-      if (error) throw error;
-      if (data) return data;
+      if (error) {
+        console.error('Erro do Supabase ao inserir transação no banco:', error);
+        throw error;
+      }
+
+      if (data) {
+        console.log('Transação salva com sucesso no banco Supabase:', data);
+        return {
+          ...data,
+          is_paid: data.is_paid !== undefined ? data.is_paid : true,
+        };
+      }
     } catch (err) {
-      console.error('Erro ao criar transação no Supabase:', err);
+      console.error('Erro ao criar transação no banco Supabase:', err);
     }
   }
 
+  // Fallback para LocalStorage se o Supabase não estiver configurado ou ocorrer falha de rede
   const transactions = getLocalTransactions();
   const categories = getLocalCategories();
   const categoryObj = categories.find(c => c.id === transactionData.category_id);
@@ -365,14 +456,17 @@ export async function createTransactionApi(transactionData: Omit<Transaction, 'i
 }
 
 export async function updateTransactionPaidStatusApi(id: string, is_paid: boolean): Promise<boolean> {
-  if (supabaseClient) {
+  if (supabaseClient && isValidUUID(id)) {
     try {
       const { error } = await supabaseClient
         .from('transactions')
         .update({ is_paid })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao atualizar status no Supabase:', error);
+        throw error;
+      }
       return true;
     } catch (err) {
       console.error('Erro ao atualizar status de pagamento no Supabase:', err);
@@ -386,14 +480,17 @@ export async function updateTransactionPaidStatusApi(id: string, is_paid: boolea
 }
 
 export async function deleteTransactionApi(id: string): Promise<boolean> {
-  if (supabaseClient) {
+  if (supabaseClient && isValidUUID(id)) {
     try {
       const { error } = await supabaseClient
         .from('transactions')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao deletar no Supabase:', error);
+        throw error;
+      }
       return true;
     } catch (err) {
       console.error('Erro ao deletar transação no Supabase:', err);

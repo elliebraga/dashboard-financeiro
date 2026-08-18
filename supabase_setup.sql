@@ -73,18 +73,18 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
--- Políticas Idempotentes de Leitura e Escrita
+-- Políticas Idempotentes de Leitura e Escrita Completas (ALL)
 DROP POLICY IF EXISTS "Permitir leitura pública em users" ON public.users;
-CREATE POLICY "Permitir leitura pública em users" ON public.users FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Permitir tudo em users" ON public.users;
+CREATE POLICY "Permitir tudo em users" ON public.users FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Permitir leitura pública em categories" ON public.categories;
-CREATE POLICY "Permitir leitura pública em categories" ON public.categories FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Permitir inserção em categories" ON public.categories;
-CREATE POLICY "Permitir inserção em categories" ON public.categories FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Permitir tudo em categories" ON public.categories;
+CREATE POLICY "Permitir tudo em categories" ON public.categories FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Permitir tudo em transactions" ON public.transactions;
-CREATE POLICY "Permitir tudo em transactions" ON public.transactions FOR ALL USING (true);
+CREATE POLICY "Permitir tudo em transactions" ON public.transactions FOR ALL USING (true) WITH CHECK (true);
 
 -- 9. Adicionar Tabelas à Publicação Realtime do Supabase
 DO $$
