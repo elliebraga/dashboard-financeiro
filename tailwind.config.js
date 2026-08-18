@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Nunito"', 'sans-serif'],
+        sans: ['"Manrope"', 'sans-serif'],
       },
       colors: {
         brand: {
