@@ -205,22 +205,22 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
   const editPreviewTotal = editPreviewQty * editPreviewPrice;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300 overflow-hidden">
       
       {/* CABEÇALHO DO MÓDULO DE MERCADO */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center space-x-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs overflow-hidden">
+        <div className="flex items-center space-x-3.5 min-w-0">
           <div className="p-3 bg-pink-100 text-pink-600 rounded-2xl border border-pink-200/80 shrink-0">
             <ShoppingCart className="w-6 h-6" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Compras de Mercado</h1>
-              <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-bold">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 truncate">Compras de Mercado</h1>
+              <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-bold shrink-0">
                 Módulo Ativo
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 truncate">
               Anote, edite itens, calcule o valor total e compare idas ao mercado
             </p>
           </div>
@@ -229,7 +229,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         {/* Botão + Nova Lista */}
         <button
           onClick={() => setShowNewListModal(true)}
-          className="bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-3 px-4 rounded-2xl shadow-xs transition-all flex items-center justify-center space-x-2 text-xs active:scale-[0.98] min-h-[48px]"
+          className="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-3 px-4 rounded-2xl shadow-xs transition-all flex items-center justify-center space-x-2 text-xs active:scale-[0.98] min-h-[48px] shrink-0"
         >
           <ListPlus className="w-4 h-4" />
           <span>Criar Nova Lista</span>
@@ -249,25 +249,25 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             <span className="text-xs font-bold text-pink-100 uppercase tracking-wider block mb-1">
               Soma Total da Compra
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight truncate">
               R$ {totalListAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h2>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-xs font-semibold text-pink-100">
-            <span>No carrinho: R$ {purchasedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded-full">{progressPercent}% do total</span>
+          <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-xs font-semibold text-pink-100 min-w-0">
+            <span className="truncate">No carrinho: R$ {purchasedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full shrink-0 ml-1">{progressPercent}% do total</span>
           </div>
         </div>
 
         {/* Card 2: Progresso dos Itens Comprados */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between overflow-hidden">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">
                 Itens no Carrinho
               </span>
-              <span className="text-xs font-extrabold text-pink-600 bg-pink-50 px-2.5 py-0.5 rounded-full border border-pink-100">
+              <span className="text-xs font-extrabold text-pink-600 bg-pink-50 px-2.5 py-0.5 rounded-full border border-pink-100 shrink-0">
                 {purchasedItems.length} de {items.length} itens
               </span>
             </div>
@@ -280,7 +280,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 font-medium truncate">
             {items.length - purchasedItems.length > 0 
               ? `Faltam ${items.length - purchasedItems.length} itens para concluir esta compra.`
               : items.length > 0 ? '🎉 Todos os itens já estão no carrinho!' : 'Nenhum item adicionado ainda.'}
@@ -288,29 +288,29 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </div>
 
         {/* Card 3: Comparador com a Compra Anterior */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between overflow-hidden">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-              <BarChart3 className="w-3.5 h-3.5 text-pink-500" /> Comparativo Mensal
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 truncate">
+              <BarChart3 className="w-3.5 h-3.5 text-pink-500 shrink-0" /> Comparativo Mensal
             </span>
             {previousList && (
-              <span className="text-xs font-medium text-slate-400">vs. {previousList.title}</span>
+              <span className="text-xs font-medium text-slate-400 truncate ml-1">vs. {previousList.title}</span>
             )}
           </div>
 
           {previousList ? (
             <div>
-              <div className="flex items-center space-x-2 my-1">
+              <div className="flex items-center space-x-2 my-1 min-w-0">
                 {isHigherThanPrev ? (
                   <TrendingUp className="w-5 h-5 text-rose-500 shrink-0" />
                 ) : (
                   <TrendingDown className="w-5 h-5 text-emerald-500 shrink-0" />
                 )}
-                <span className={`text-lg font-extrabold ${isHigherThanPrev ? 'text-rose-600' : 'text-emerald-600'}`}>
+                <span className={`text-lg font-extrabold truncate ${isHigherThanPrev ? 'text-rose-600' : 'text-emerald-600'}`}>
                   {isHigherThanPrev ? '+' : ''} R$ {priceDiff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 font-medium truncate">
                 {isHigherThanPrev 
                   ? 'Esta compra está mais cara do que a compra anterior.' 
                   : 'Economia em relação à compra anterior!'}
@@ -324,26 +324,26 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             </div>
           )}
 
-          <div className="mt-2 text-xs font-semibold text-slate-400 border-t border-slate-100 pt-2">
+          <div className="mt-2 text-xs font-semibold text-slate-400 border-t border-slate-100 pt-2 truncate">
             Histórico: {groceryLists.length} listas cadastradas
           </div>
         </div>
 
       </div>
 
-      {/* SELETOR DE LISTA DE MERCADO ATIVA & BOTÃO DE DELETAR LISTA */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
+      {/* SELETOR DE LISTA DE MERCADO ATIVA & BOTÃO DE DELETAR LISTA (100% RESPONSIVO / MIN-W-0 TRUNCATE) */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-full">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
             <Calendar className="w-4 h-4 text-pink-500" /> Lista Ativa:
           </label>
           <select
             value={selectedListId}
             onChange={(e) => setSelectedListId(e.target.value)}
-            className="flex-1 bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-extrabold text-sm rounded-2xl px-4 py-2.5 outline-none min-h-[44px]"
+            className="w-full sm:flex-1 min-w-0 max-w-full truncate bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-extrabold text-sm rounded-2xl px-3.5 sm:px-4 py-2.5 outline-none min-h-[44px]"
           >
             {groceryLists.map(l => (
-              <option key={l.id} value={l.id}>
+              <option key={l.id} value={l.id} className="truncate">
                 {l.title} ({new Date(l.date).toLocaleDateString('pt-BR')}) - R$ {l.total_amount.toFixed(2)}
               </option>
             ))}
@@ -361,7 +361,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                 }
               }
             }}
-            className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-xs font-bold transition-colors flex items-center justify-center space-x-1.5 shrink-0 min-h-[44px]"
+            className="w-full sm:w-auto px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-xs font-bold transition-colors flex items-center justify-center space-x-1.5 shrink-0 min-h-[44px]"
           >
             <Trash2 className="w-4 h-4" />
             <span>Excluir Lista</span>
@@ -369,15 +369,15 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         )}
       </div>
 
-      {/* SEÇÃO HISTÓRICO & COMPARADOR DE COMPRAS DE MERCADO (POSICIONADO EM CIMA DA LISTA DE ITENS) */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs">
+      {/* SEÇÃO HISTÓRICO & COMPARADOR DE COMPRAS DE MERCADO (RESPONSIVO) */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs overflow-hidden">
         <div className="flex items-center space-x-2.5 mb-4">
-          <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100">
+          <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100 shrink-0">
             <BarChart3 className="w-5 h-5" />
           </div>
-          <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Comparador de Idas ao Mercado</h3>
-            <p className="text-xs text-slate-500 font-medium">Compare os valores totais e selecione uma lista para ver os detalhes</p>
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 truncate">Comparador de Idas ao Mercado</h3>
+            <p className="text-xs text-slate-500 font-medium truncate">Compare os valores totais e selecione uma lista para ver os detalhes</p>
           </div>
         </div>
 
@@ -386,24 +386,24 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             <div
               key={list.id}
               onClick={() => setSelectedListId(list.id)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+              className={`p-4 rounded-2xl border transition-all cursor-pointer overflow-hidden ${
                 list.id === selectedListId
                   ? 'bg-pink-50/80 border-pink-400 shadow-xs ring-2 ring-pink-300/50'
                   : 'bg-slate-50/80 border-slate-200 hover:border-pink-200'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-extrabold text-sm text-slate-900">{list.title}</span>
-                <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded-full border font-bold">
+              <div className="flex items-center justify-between mb-2 gap-2 min-w-0">
+                <span className="font-extrabold text-sm text-slate-900 truncate">{list.title}</span>
+                <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded-full border font-bold shrink-0">
                   {new Date(list.date).toLocaleDateString('pt-BR')}
                 </span>
               </div>
 
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-slate-500 font-medium">
+              <div className="flex items-baseline justify-between mt-3 gap-2 min-w-0">
+                <span className="text-xs text-slate-500 font-medium truncate">
                   {(list.items || []).length} itens
                 </span>
-                <span className="text-base font-extrabold text-pink-600">
+                <span className="text-base font-extrabold text-pink-600 shrink-0">
                   R$ {list.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -413,15 +413,15 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
       </div>
 
       {/* PAINEL PRINCIPAL: FORMULÁRIO DE ADICIONAR ITEM & CHECKLIST DE MERCADO */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
         
         {/* COLUNA ESQUERDA: FORMULÁRIO PARA ANOTAR NOVO ITEM */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs h-fit">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs h-fit overflow-hidden">
           <div className="flex items-center space-x-2.5 mb-4">
-            <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100">
+            <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100 shrink-0">
               <Plus className="w-4 h-4" />
             </div>
-            <h3 className="text-base font-extrabold text-slate-900">Anotar Item do Mercado</h3>
+            <h3 className="text-base font-extrabold text-slate-900 truncate">Anotar Item do Mercado</h3>
           </div>
 
           {itemSuccessMsg && (
@@ -436,7 +436,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             {/* Nome do Item */}
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <Tag className="w-3.5 h-3.5 text-pink-500" /> Nome do Produto
+                <Tag className="w-3.5 h-3.5 text-pink-500 shrink-0" /> Nome do Produto
               </label>
               <input
                 type="text"
@@ -483,7 +483,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> Valor Un. (R$)
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Valor Un. (R$)
                 </label>
                 <input
                   type="number"
@@ -498,9 +498,9 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             </div>
 
             {/* PRÉVIA DO CÁLCULO TOTAL DO ITEM */}
-            <div className="p-3 bg-pink-50/80 border border-pink-100 rounded-2xl text-xs flex items-center justify-between font-bold text-pink-900">
-              <span>Cálculo Total: {previewQty} × R$ {previewPrice.toFixed(2)}</span>
-              <span className="text-sm font-extrabold text-pink-600">
+            <div className="p-3 bg-pink-50/80 border border-pink-100 rounded-2xl text-xs flex items-center justify-between font-bold text-pink-900 min-w-0">
+              <span className="truncate">Cálculo Total: {previewQty} × R$ {previewPrice.toFixed(2)}</span>
+              <span className="text-sm font-extrabold text-pink-600 shrink-0 ml-1">
                 = R$ {previewTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -524,22 +524,22 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </div>
 
         {/* COLUNA DIREITA: TABELA / CHECKLIST DE ITENS DO MERCADO */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between overflow-hidden">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+              <div className="min-w-0">
+                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 truncate">
                   <span>Itens da Lista</span>
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full font-bold shrink-0">
                     {items.length} itens
                   </span>
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium truncate">
                   Clique no lápis para editar nome, quantidade ou preço do produto
                 </p>
               </div>
 
-              <div className="text-right">
+              <div className="text-left sm:text-right shrink-0">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Total da Lista</span>
                 <span className="text-lg font-extrabold text-pink-600">
                   R$ {totalListAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -562,7 +562,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                   return (
                     <div
                       key={item.id}
-                      className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                      className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 overflow-hidden ${
                         item.is_purchased
                           ? 'bg-slate-50/60 border-slate-200 opacity-75'
                           : 'bg-white border-slate-200/80 shadow-2xs hover:border-pink-200'
@@ -583,7 +583,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                         </button>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 min-w-0">
                             <span className={`font-bold text-sm truncate ${item.is_purchased ? 'line-through text-slate-400' : 'text-slate-900'}`}>
                               {item.name}
                             </span>
@@ -592,7 +592,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                             </span>
                           </div>
 
-                          <div className="text-xs text-slate-500 font-medium mt-0.5">
+                          <div className="text-xs text-slate-500 font-medium mt-0.5 truncate">
                             <span>{item.quantity}un × R$ {item.unit_price.toFixed(2)}</span>
                           </div>
                         </div>
