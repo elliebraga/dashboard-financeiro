@@ -16,7 +16,10 @@ import {
   ListPlus,
   BarChart3,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Pencil,
+  Save,
+  X
 } from 'lucide-react';
 import { GroceryCategory, GroceryItem, GroceryList } from '../types';
 
@@ -25,6 +28,7 @@ interface GroceryShoppingProps {
   onAddList: (title: string, date: string, notes?: string) => Promise<GroceryList>;
   onDeleteList: (listId: string) => Promise<void>;
   onAddItem: (listId: string, item: { name: string; quantity: number; unit_price: number; category: string }) => Promise<void>;
+  onUpdateItem: (itemId: string, updates: Partial<GroceryItem>) => Promise<void>;
   onToggleItemPurchased: (itemId: string, currentStatus: boolean) => Promise<void>;
   onDeleteItem: (itemId: string, listId: string) => Promise<void>;
 }
@@ -58,6 +62,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
   onAddList,
   onDeleteList,
   onAddItem,
+  onUpdateItem,
   onToggleItemPurchased,
   onDeleteItem
 }) => {
@@ -79,6 +84,14 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
   const [itemCategory, setItemCategory] = useState<GroceryCategory>('Mercearia');
   const [addingItem, setAddingItem] = useState(false);
   const [itemSuccessMsg, setItemSuccessMsg] = useState('');
+
+  // Estado para EDIÇÃO DE ITEM
+  const [editingItem, setEditingItem] = useState<GroceryItem | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editQuantity, setEditQuantity] = useState('1');
+  const [editUnitPrice, setEditUnitPrice] = useState('0');
+  const [editCategory, setEditCategory] = useState<GroceryCategory>('Mercearia');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Lista selecionada atual
   const activeList = groceryLists.find(l => l.id === selectedListId) || groceryLists[0];
@@ -117,12 +130,48 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
       setItemName('');
       setItemQuantity('1');
       setItemUnitPrice('');
-      setItemSuccessMsg('Item adicionado à lista!');
+      setItemSuccessMsg('Item adicionado à lista com sucesso!');
       setTimeout(() => setItemSuccessMsg(''), 2500);
     } catch (err) {
       console.error('Erro ao adicionar item de mercado:', err);
     } finally {
       setAddingItem(false);
+    }
+  };
+
+  // Handler para iniciar edição
+  const handleStartEditItem = (item: GroceryItem) => {
+    setEditingItem(item);
+    setEditName(item.name);
+    setEditQuantity(String(item.quantity));
+    setEditUnitPrice(String(item.unit_price));
+    setEditCategory((item.category as GroceryCategory) || 'Mercearia');
+  };
+
+  // Handler para salvar alterações do item
+  const handleSaveItemEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    const qty = parseFloat(editQuantity.replace(',', '.')) || 1;
+    const price = parseFloat(editUnitPrice.replace(',', '.')) || 0;
+
+    setSavingEdit(true);
+    try {
+      await onUpdateItem(editingItem.id, {
+        name: editName.trim(),
+        quantity: qty,
+        unit_price: price,
+        category: editCategory
+      });
+
+      setEditingItem(null);
+      setItemSuccessMsg('Item atualizado no banco!');
+      setTimeout(() => setItemSuccessMsg(''), 2500);
+    } catch (err) {
+      console.error('Erro ao editar item:', err);
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -150,6 +199,11 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
   const previewPrice = parseFloat(itemUnitPrice.replace(',', '.')) || 0;
   const previewTotal = previewQty * previewPrice;
 
+  // Cálculo prévio em tempo real para o modal de edição
+  const editPreviewQty = parseFloat(editQuantity.replace(',', '.')) || 0;
+  const editPreviewPrice = parseFloat(editUnitPrice.replace(',', '.')) || 0;
+  const editPreviewTotal = editPreviewQty * editPreviewPrice;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
@@ -163,11 +217,11 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Compras de Mercado</h1>
               <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-bold">
-                Novo
+                Edição Ativa
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-              Anote os itens, calcule o valor total e compare idas ao mercado
+              Anote, edite itens, calcule o valor total e compare idas ao mercado
             </p>
           </div>
         </div>
@@ -438,7 +492,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Clique no checkbox para marcar o produto como comprado no carrinho
+                  Clique no lápis para editar nome, quantidade ou preço do produto
                 </p>
               </div>
 
@@ -501,17 +555,29 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                         </div>
                       </div>
 
-                      {/* Total do Item & Ação de Deletar */}
-                      <div className="flex items-center space-x-3 shrink-0">
-                        <div className="text-right">
+                      {/* Total do Item, Botão de Edição & Botão de Deletar */}
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <div className="text-right mr-1">
                           <span className={`font-extrabold text-sm ${item.is_purchased ? 'text-slate-400' : 'text-slate-900'}`}>
                             R$ {(item.total_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </span>
                         </div>
 
+                        {/* BOTÃO PARA EDITAR ITEM */}
                         <button
+                          type="button"
+                          onClick={() => handleStartEditItem(item)}
+                          className="p-1.5 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                          title="Editar item da lista"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+
+                        {/* BOTÃO PARA DELETAR ITEM */}
+                        <button
+                          type="button"
                           onClick={() => onDeleteItem(item.id, activeList.id)}
-                          className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                          className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                           title="Remover item"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -580,6 +646,130 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </div>
       </div>
 
+      {/* MODAL DE EDIÇÃO DE ITEM DE MERCADO */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/30 backdrop-blur-xs">
+          <div className="bg-white/95 backdrop-blur-md border-t sm:border border-slate-200/80 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative animate-in slide-in-from-bottom-5">
+            
+            <button
+              onClick={() => setEditingItem(null)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-2xl transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2.5 bg-pink-50 text-pink-600 rounded-2xl border border-pink-100 shrink-0">
+                <Pencil className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900">Editar Item de Mercado</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Altere nome, quantidade, valor ou categoria do produto
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveItemEdit} className="space-y-4">
+              
+              {/* Nome do Produto */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Nome do Produto
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-bold text-sm rounded-2xl px-4 py-3 outline-none min-h-[48px]"
+                />
+              </div>
+
+              {/* Categoria */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Categoria
+                </label>
+                <select
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value as GroceryCategory)}
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-bold text-sm rounded-2xl px-4 py-3 outline-none min-h-[48px]"
+                >
+                  {GROCERY_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Quantidade & Preço Unitário */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Qtd (Unidade)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    value={editQuantity}
+                    onChange={(e) => setEditQuantity(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-bold text-sm rounded-2xl px-4 py-3 outline-none min-h-[48px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Valor Un. (R$)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editUnitPrice}
+                    onChange={(e) => setEditUnitPrice(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-extrabold text-sm rounded-2xl px-4 py-3 outline-none min-h-[48px]"
+                  />
+                </div>
+              </div>
+
+              {/* Prévia do Novo Total Calculado */}
+              <div className="p-3 bg-pink-50 border border-pink-100 rounded-2xl text-xs flex items-center justify-between font-bold text-pink-900">
+                <span>Novo Total: {editPreviewQty} × R$ {editPreviewPrice.toFixed(2)}</span>
+                <span className="text-sm font-extrabold text-pink-600">
+                  = R$ {editPreviewTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-2xl"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-5 py-3 bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs rounded-2xl shadow-xs transition-all flex items-center space-x-1.5 min-h-[44px]"
+                >
+                  {savingEdit ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Salvar Alterações</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* MODAL PARA CRIAR NOVA LISTA DE COMPRAS DE MERCADO */}
       {showNewListModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/30 backdrop-blur-xs">
@@ -641,7 +831,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                 <button
                   type="submit"
                   disabled={creatingList}
-                  className="px-5 py-3 bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs rounded-2xl shadow-xs transition-all flex items-center space-x-1.5"
+                  className="px-5 py-3 bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs rounded-2xl shadow-xs transition-all flex items-center space-x-1.5 min-h-[44px]"
                 >
                   {creatingList ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Criar Lista</span>}
                 </button>

@@ -26,7 +26,7 @@ import {
   logoutUserSession,
   supabaseClient,
 } from './lib/supabase';
-import { Category, Transaction, TransactionType, User, GroceryList } from './types';
+import { Category, Transaction, TransactionType, User, GroceryList, GroceryItem } from './types';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(getStoredUserSession());
@@ -205,6 +205,25 @@ export function App() {
     );
   };
 
+  const handleUpdateGroceryItem = async (itemId: string, updates: Partial<GroceryItem>) => {
+    await updateGroceryItemApi(itemId, updates);
+    setGroceryLists((prev) =>
+      prev.map((l) => {
+        const items = (l.items || []).map((i) => {
+          if (i.id === itemId) {
+            const qty = updates.quantity !== undefined ? updates.quantity : i.quantity;
+            const price = updates.unit_price !== undefined ? updates.unit_price : i.unit_price;
+            const totalPrice = qty * price;
+            return { ...i, ...updates, total_price: totalPrice };
+          }
+          return i;
+        });
+        const total_amount = items.reduce((acc, i) => acc + (i.total_price || 0), 0);
+        return { ...l, items, total_amount };
+      })
+    );
+  };
+
   const handleOpenCategoryModal = (type: TransactionType) => {
     setCategoryModalType(type);
     setIsNewCategoryModalOpen(true);
@@ -300,6 +319,7 @@ export function App() {
               onAddList={handleAddGroceryList}
               onDeleteList={handleDeleteGroceryList}
               onAddItem={handleAddGroceryItem}
+              onUpdateItem={handleUpdateGroceryItem}
               onToggleItemPurchased={handleToggleGroceryItemPurchased}
               onDeleteItem={handleDeleteGroceryItem}
             />
