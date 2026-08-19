@@ -217,7 +217,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Compras de Mercado</h1>
               <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-bold">
-                Edição Ativa
+                Módulo Ativo
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
@@ -367,6 +367,49 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
             <span>Excluir Lista</span>
           </button>
         )}
+      </div>
+
+      {/* SEÇÃO HISTÓRICO & COMPARADOR DE COMPRAS DE MERCADO (POSICIONADO EM CIMA DA LISTA DE ITENS) */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs">
+        <div className="flex items-center space-x-2.5 mb-4">
+          <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100">
+            <BarChart3 className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Comparador de Idas ao Mercado</h3>
+            <p className="text-xs text-slate-500 font-medium">Compare os valores totais e selecione uma lista para ver os detalhes</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {groceryLists.map((list) => (
+            <div
+              key={list.id}
+              onClick={() => setSelectedListId(list.id)}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                list.id === selectedListId
+                  ? 'bg-pink-50/80 border-pink-400 shadow-xs ring-2 ring-pink-300/50'
+                  : 'bg-slate-50/80 border-slate-200 hover:border-pink-200'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-extrabold text-sm text-slate-900">{list.title}</span>
+                <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded-full border font-bold">
+                  {new Date(list.date).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+
+              <div className="flex items-baseline justify-between mt-3">
+                <span className="text-xs text-slate-500 font-medium">
+                  {(list.items || []).length} itens
+                </span>
+                <span className="text-base font-extrabold text-pink-600">
+                  R$ {list.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* PAINEL PRINCIPAL: FORMULÁRIO DE ADICIONAR ITEM & CHECKLIST DE MERCADO */}
@@ -601,49 +644,6 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
           )}
         </div>
 
-      </div>
-
-      {/* SEÇÃO HISTÓRICO & COMPARADOR DE COMPRAS DE MERCADO */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center space-x-2.5 mb-4">
-          <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100">
-            <BarChart3 className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Comparador de Idas ao Mercado</h3>
-            <p className="text-xs text-slate-500 font-medium">Compare os valores totais gastos em cada mês/compra</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {groceryLists.map((list) => (
-            <div
-              key={list.id}
-              onClick={() => setSelectedListId(list.id)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                list.id === selectedListId
-                  ? 'bg-pink-50/60 border-pink-300 shadow-xs'
-                  : 'bg-slate-50/80 border-slate-200 hover:border-pink-200'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-extrabold text-sm text-slate-900">{list.title}</span>
-                <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded-full border font-bold">
-                  {new Date(list.date).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-slate-500 font-medium">
-                  {(list.items || []).length} itens
-                </span>
-                <span className="text-base font-extrabold text-pink-600">
-                  R$ {list.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* MODAL DE EDIÇÃO DE ITEM DE MERCADO */}
