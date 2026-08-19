@@ -7,6 +7,7 @@ import { NewCategoryModal } from './components/NewCategoryModal';
 import { ConnectionModal } from './components/ConnectionModal';
 import { FinancialSummary } from './components/FinancialSummary';
 import { MonthlyComparator } from './components/MonthlyComparator';
+import { GroceryShopping } from './components/GroceryShopping';
 import { LoginModal } from './components/LoginModal';
 import {
   fetchCategoriesApi,
@@ -15,16 +16,24 @@ import {
   createTransactionApi,
   updateTransactionPaidStatusApi,
   deleteTransactionApi,
+  fetchGroceryListsApi,
+  createGroceryListApi,
+  deleteGroceryListApi,
+  addGroceryItemApi,
+  updateGroceryItemApi,
+  deleteGroceryItemApi,
   getStoredUserSession,
   logoutUserSession,
   supabaseClient,
 } from './lib/supabase';
-import { Category, Transaction, TransactionType, User } from './types';
+import { Category, Transaction, TransactionType, User, GroceryList } from './types';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(getStoredUserSession());
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [groceryLists, setGroceryLists] = useState<GroceryList[]>([]);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'grocery'>('dashboard');
   const [loading, setLoading] = useState(true);
 
   // Mês atual como padrão do dropdown (ex: '2026-08') ou 'all'
@@ -41,12 +50,14 @@ export function App() {
     if (!currentUser) return;
     setLoading(true);
     try {
-      const [cats, txs] = await Promise.all([
+      const [cats, txs, glists] = await Promise.all([
         fetchCategoriesApi(),
         fetchTransactionsApi(),
+        fetchGroceryListsApi(),
       ]);
       setCategories(cats);
       setTransactions(txs);
+      setGroceryLists(glists);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     } finally {
@@ -58,7 +69,7 @@ export function App() {
     loadData();
   }, [loadData]);
 
-  // Supabase Realtime Listener
+  // Supabase Realtime Listener (Transactions, Categories, Grocery Lists, Grocery Items)
   useEffect(() => {
     if (!supabaseClient || !currentUser) return;
 
@@ -78,6 +89,20 @@ export function App() {
           loadData();
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'grocery_lists' },
+        () => {
+          loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'grocery_items' },
+        () => {
+          loadData();
+        }
+      )
       .subscribe();
 
     return () => {
@@ -87,6 +112,7 @@ export function App() {
     };
   }, [loadData, currentUser]);
 
+  // Handlers Dashboard Financeiro
   const handleAddTransaction = async (
     data: Omit<Transaction, 'id' | 'created_at'>
   ) => {
@@ -123,6 +149,62 @@ export function App() {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Handlers Módulo de Mercado
+  const handleAddGroceryList = async (title: string, date: string, notes?: string): Promise<GroceryList> => {
+    const newList = await createGroceryListApi(title, date, notes);
+    setGroceryLists((prev) => [newList, ...prev]);
+    return newList;
+  };
+
+  const handleDeleteGroceryList = async (listId: string) => {
+    await deleteGroceryListApi(listId);
+    setGroceryLists((prev) => prev.filter((l) => l.id !== listId));
+  };
+
+  const handleAddGroceryItem = async (
+    listId: string,
+    item: { name: string; quantity: number; unit_price: number; category: string }
+  ) => {
+    const newItem = await addGroceryItemApi(listId, item);
+    setGroceryLists((prev) =>
+      prev.map((l) => {
+        if (l.id === listId) {
+          const items = [...(l.items || []), newItem];
+          const total_amount = items.reduce((acc, i) => acc + (i.total_price || 0), 0);
+          return { ...l, items, total_amount };
+        }
+        return l;
+      })
+    );
+  };
+
+  const handleToggleGroceryItemPurchased = async (itemId: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    await updateGroceryItemApi(itemId, { is_purchased: newStatus });
+    setGroceryLists((prev) =>
+      prev.map((l) => {
+        const items = (l.items || []).map((i) =>
+          i.id === itemId ? { ...i, is_purchased: newStatus } : i
+        );
+        return { ...l, items };
+      })
+    );
+  };
+
+  const handleDeleteGroceryItem = async (itemId: string, listId: string) => {
+    await deleteGroceryItemApi(itemId, listId);
+    setGroceryLists((prev) =>
+      prev.map((l) => {
+        if (l.id === listId) {
+          const items = (l.items || []).filter((i) => i.id !== itemId);
+          const total_amount = items.reduce((acc, i) => acc + (i.total_price || 0), 0);
+          return { ...l, items, total_amount };
+        }
+        return l;
+      })
+    );
+  };
+
   const handleOpenCategoryModal = (type: TransactionType) => {
     setCategoryModalType(type);
     setIsNewCategoryModalOpen(true);
@@ -150,6 +232,8 @@ export function App() {
       {/* Header Bar Flutuante e Suave */}
       <Navbar
         currentUser={currentUser}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         onOpenConnectionModal={() => setIsConnectionModalOpen(true)}
         onLogout={handleLogout}
       />
@@ -162,46 +246,65 @@ export function App() {
         }}
       />
 
-      {/* Main Content Dashboard (só acessível quando logado) */}
+      {/* Main Content (Dashboard ou Mercado) */}
       {currentUser && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 relative z-10">
-          {/* Top: Big Numbers com Dropdown de Seleção por Mês */}
-          <BigNumberCards
-            transactions={transactions}
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
-          />
+          
+          {/* ABA 1: DASHBOARD FINANCEIRO */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Top: Big Numbers com Dropdown de Seleção por Mês */}
+              <BigNumberCards
+                transactions={transactions}
+                selectedPeriod={selectedPeriod}
+                onPeriodChange={setSelectedPeriod}
+              />
 
-          {/* Comparativo Mensal de Valores (Exibido quando selecionar "Todo o Período") */}
-          {selectedPeriod === 'all' && (
-            <MonthlyComparator
-              transactions={transactions}
-              categories={categories}
+              {/* Comparativo Mensal de Valores (Exibido quando selecionar "Todo o Período") */}
+              {selectedPeriod === 'all' && (
+                <MonthlyComparator
+                  transactions={transactions}
+                  categories={categories}
+                />
+              )}
+
+              {/* Middle Grid: Transaction Form + Financial Summary */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="lg:col-span-2">
+                  <TransactionForm
+                    categories={categories}
+                    onAddTransaction={handleAddTransaction}
+                    onOpenNewCategoryModal={handleOpenCategoryModal}
+                  />
+                </div>
+
+                <div className="lg:col-span-1">
+                  <FinancialSummary transactions={displayedTransactions} />
+                </div>
+              </div>
+
+              {/* Bottom: Transaction Table */}
+              <TransactionTable
+                transactions={displayedTransactions}
+                categories={categories}
+                onDeleteTransaction={handleDeleteTransaction}
+                onTogglePaidStatus={handleTogglePaidStatus}
+              />
+            </>
+          )}
+
+          {/* ABA 2: COMPRAS DE MERCADO */}
+          {activeTab === 'grocery' && (
+            <GroceryShopping
+              groceryLists={groceryLists}
+              onAddList={handleAddGroceryList}
+              onDeleteList={handleDeleteGroceryList}
+              onAddItem={handleAddGroceryItem}
+              onToggleItemPurchased={handleToggleGroceryItemPurchased}
+              onDeleteItem={handleDeleteGroceryItem}
             />
           )}
 
-          {/* Middle Grid: Transaction Form + Financial Summary */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            <div className="lg:col-span-2">
-              <TransactionForm
-                categories={categories}
-                onAddTransaction={handleAddTransaction}
-                onOpenNewCategoryModal={handleOpenCategoryModal}
-              />
-            </div>
-
-            <div className="lg:col-span-1">
-              <FinancialSummary transactions={displayedTransactions} />
-            </div>
-          </div>
-
-          {/* Bottom: Transaction Table */}
-          <TransactionTable
-            transactions={displayedTransactions}
-            categories={categories}
-            onDeleteTransaction={handleDeleteTransaction}
-            onTogglePaidStatus={handleTogglePaidStatus}
-          />
         </main>
       )}
 

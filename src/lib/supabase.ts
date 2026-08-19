@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Category, Transaction, TransactionType, User } from '../types';
+import { Category, Transaction, TransactionType, User, GroceryList, GroceryItem } from '../types';
 
 // Credenciais iniciais / Padrão fornecidas via ambiente ou fallback automático seguro
 const DEFAULT_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://uceimrizuzqqgejsnwig.supabase.co';
@@ -659,3 +659,268 @@ export async function testSupabaseDatabaseConnection(): Promise<{ success: boole
     return { success: false, message: msg };
   }
 }
+
+// -----------------------------------------------------------------
+// MÓDULO DE COMPRAS DE MERCADO (GROCERY LISTS & ITEMS)
+// -----------------------------------------------------------------
+
+export const INITIAL_GROCERY_LISTS: GroceryList[] = [
+  {
+    id: 'glist-1',
+    title: 'Compras de Agosto',
+    date: new Date().toISOString().split('T')[0],
+    total_amount: 345.50,
+    notes: 'Feira mensal + Produtos de limpeza',
+    status: 'active',
+    items: [
+      { id: 'gitem-1', list_id: 'glist-1', name: 'Arroz 5kg', quantity: 2, unit_price: 28.90, total_price: 57.80, is_purchased: true, category: 'Mercearia' },
+      { id: 'gitem-2', list_id: 'glist-1', name: 'Feijão Carioca 1kg', quantity: 3, unit_price: 7.50, total_price: 22.50, is_purchased: true, category: 'Mercearia' },
+      { id: 'gitem-3', list_id: 'glist-1', name: 'Leite Desnatado 1L', quantity: 12, unit_price: 5.20, total_price: 62.40, is_purchased: true, category: 'Laticínios' },
+      { id: 'gitem-4', list_id: 'glist-1', name: 'Peito de Frango 1kg', quantity: 3, unit_price: 19.90, total_price: 59.70, is_purchased: false, category: 'Carnes & Peixes' },
+      { id: 'gitem-5', list_id: 'glist-1', name: 'Detergente Líquido', quantity: 4, unit_price: 2.80, total_price: 11.20, is_purchased: true, category: 'Limpeza' },
+      { id: 'gitem-6', list_id: 'glist-1', name: 'Sabão em Pó 1.6kg', quantity: 2, unit_price: 21.90, total_price: 43.80, is_purchased: false, category: 'Limpeza' },
+      { id: 'gitem-7', list_id: 'glist-1', name: 'Banana Prata 1kg', quantity: 2, unit_price: 6.50, total_price: 13.00, is_purchased: true, category: 'Hortifruti' },
+      { id: 'gitem-8', list_id: 'glist-1', name: 'Café Torrado 500g', quantity: 3, unit_price: 25.00, total_price: 75.10, is_purchased: false, category: 'Mercearia' },
+    ]
+  },
+  {
+    id: 'glist-2',
+    title: 'Compras de Julho (Anterior)',
+    date: '2026-07-20',
+    total_amount: 298.00,
+    notes: 'Supermercado do mês passado',
+    status: 'completed',
+    items: [
+      { id: 'gitem-10', list_id: 'glist-2', name: 'Arroz 5kg', quantity: 2, unit_price: 27.50, total_price: 55.00, is_purchased: true, category: 'Mercearia' },
+      { id: 'gitem-11', list_id: 'glist-2', name: 'Carne Moída 1kg', quantity: 2, unit_price: 32.00, total_price: 64.00, is_purchased: true, category: 'Carnes & Peixes' },
+      { id: 'gitem-12', list_id: 'glist-2', name: 'Azeite Extra Virgem 500ml', quantity: 2, unit_price: 39.50, total_price: 79.00, is_purchased: true, category: 'Mercearia' },
+      { id: 'gitem-13', list_id: 'glist-2', name: 'Papel Higiênico 12un', quantity: 2, unit_price: 25.00, total_price: 50.00, is_purchased: true, category: 'Higiene' },
+      { id: 'gitem-14', list_id: 'glist-2', name: 'Queijo Mussarela 500g', quantity: 2, unit_price: 25.00, total_price: 50.00, is_purchased: true, category: 'Laticínios' }
+    ]
+  }
+];
+
+export function getLocalGroceryLists(): GroceryList[] {
+  const data = localStorage.getItem('dindin_grocery_lists');
+  if (!data) {
+    localStorage.setItem('dindin_grocery_lists', JSON.stringify(INITIAL_GROCERY_LISTS));
+    return INITIAL_GROCERY_LISTS;
+  }
+  try {
+    return JSON.parse(data);
+  } catch {
+    return INITIAL_GROCERY_LISTS;
+  }
+}
+
+export function saveLocalGroceryLists(lists: GroceryList[]) {
+  localStorage.setItem('dindin_grocery_lists', JSON.stringify(lists));
+}
+
+// 1. Buscar todas as listas com seus itens
+export async function fetchGroceryListsApi(): Promise<GroceryList[]> {
+  if (supabaseClient) {
+    try {
+      const { data: lists, error: listsErr } = await supabaseClient
+        .from('grocery_lists')
+        .select(`
+          *,
+          items:grocery_items(*)
+        `)
+        .order('date', { ascending: false });
+
+      if (listsErr) {
+        console.warn('Tabela grocery_lists ainda não criada ou erro no Supabase:', listsErr);
+      } else if (lists && lists.length > 0) {
+        return lists.map(l => {
+          const items = l.items || [];
+          const computedTotal = items.reduce((acc: number, item: GroceryItem) => acc + Number(item.total_price || 0), 0);
+          return {
+            ...l,
+            total_amount: computedTotal > 0 ? computedTotal : Number(l.total_amount || 0),
+            items
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('Erro ao consultar grocery_lists no Supabase:', err);
+    }
+  }
+
+  return getLocalGroceryLists();
+}
+
+// 2. Criar nova lista de mercado
+export async function createGroceryListApi(title: string, date: string, notes?: string): Promise<GroceryList> {
+  const cleanTitle = title.trim();
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('grocery_lists')
+        .insert([{ title: cleanTitle, date, notes: notes || null, total_amount: 0, status: 'active' }])
+        .select()
+        .single();
+
+      if (error) {
+        console.warn('Erro ao criar lista no Supabase:', error);
+      } else if (data) {
+        return { ...data, items: [] };
+      }
+    } catch (err) {
+      console.warn('Erro ao criar lista de mercado no Supabase:', err);
+    }
+  }
+
+  const local = getLocalGroceryLists();
+  const newList: GroceryList = {
+    id: 'glist-' + Date.now(),
+    title: cleanTitle,
+    date,
+    total_amount: 0,
+    notes: notes || null,
+    status: 'active',
+    items: [],
+    created_at: new Date().toISOString()
+  };
+
+  saveLocalGroceryLists([newList, ...local]);
+  return newList;
+}
+
+// 3. Deletar lista de mercado
+export async function deleteGroceryListApi(listId: string): Promise<boolean> {
+  if (supabaseClient && isValidUUID(listId)) {
+    try {
+      await supabaseClient.from('grocery_lists').delete().eq('id', listId);
+    } catch (err) {
+      console.warn('Erro ao deletar lista no Supabase:', err);
+    }
+  }
+
+  const local = getLocalGroceryLists().filter(l => l.id !== listId);
+  saveLocalGroceryLists(local);
+  return true;
+}
+
+// 4. Adicionar item a uma lista
+export async function addGroceryItemApi(
+  listId: string,
+  itemData: { name: string; quantity: number; unit_price: number; category: string }
+): Promise<GroceryItem> {
+  const cleanName = itemData.name.trim();
+  const qty = Number(itemData.quantity) || 1;
+  const unitPrice = Number(itemData.unit_price) || 0;
+  const totalPrice = qty * unitPrice;
+
+  if (supabaseClient && isValidUUID(listId)) {
+    try {
+      const { data: item, error } = await supabaseClient
+        .from('grocery_items')
+        .insert([{
+          list_id: listId,
+          name: cleanName,
+          quantity: qty,
+          unit_price: unitPrice,
+          total_price: totalPrice,
+          is_purchased: false,
+          category: itemData.category || 'Outros'
+        }])
+        .select()
+        .single();
+
+      if (!error && item) {
+        return item;
+      }
+    } catch (err) {
+      console.warn('Erro ao inserir item no Supabase:', err);
+    }
+  }
+
+  const local = getLocalGroceryLists();
+  const newItem: GroceryItem = {
+    id: 'gitem-' + Date.now(),
+    list_id: listId,
+    name: cleanName,
+    quantity: qty,
+    unit_price: unitPrice,
+    total_price: totalPrice,
+    is_purchased: false,
+    category: itemData.category || 'Outros',
+    created_at: new Date().toISOString()
+  };
+
+  const updatedLists = local.map(l => {
+    if (l.id === listId) {
+      const items = [...(l.items || []), newItem];
+      const newTotal = items.reduce((acc, i) => acc + i.total_price, 0);
+      return { ...l, items, total_amount: newTotal };
+    }
+    return l;
+  });
+
+  saveLocalGroceryLists(updatedLists);
+  return newItem;
+}
+
+// 5. Atualizar item (Ex: status is_purchased, quantidade, preço)
+export async function updateGroceryItemApi(
+  itemId: string,
+  updates: Partial<GroceryItem>
+): Promise<boolean> {
+  if (supabaseClient && isValidUUID(itemId)) {
+    try {
+      const { error } = await supabaseClient
+        .from('grocery_items')
+        .update(updates)
+        .eq('id', itemId);
+
+      if (!error) return true;
+    } catch (err) {
+      console.warn('Erro ao atualizar item no Supabase:', err);
+    }
+  }
+
+  const local = getLocalGroceryLists();
+  const updatedLists = local.map(l => {
+    const items = (l.items || []).map((i: GroceryItem) => {
+      if (i.id === itemId) {
+        const qty = updates.quantity !== undefined ? updates.quantity : i.quantity;
+        const price = updates.unit_price !== undefined ? updates.unit_price : i.unit_price;
+        const totalPrice = qty * price;
+        return { ...i, ...updates, total_price: totalPrice };
+      }
+      return i;
+    });
+    const newTotal = items.reduce((acc: number, i: GroceryItem) => acc + (i.total_price || 0), 0);
+    return { ...l, items, total_amount: newTotal };
+  });
+
+  saveLocalGroceryLists(updatedLists);
+  return true;
+}
+
+// 6. Deletar item de uma lista
+export async function deleteGroceryItemApi(itemId: string, listId: string): Promise<boolean> {
+  if (supabaseClient && isValidUUID(itemId)) {
+    try {
+      await supabaseClient.from('grocery_items').delete().eq('id', itemId);
+    } catch (err) {
+      console.warn('Erro ao deletar item no Supabase:', err);
+    }
+  }
+
+  const local = getLocalGroceryLists();
+  const updatedLists = local.map(l => {
+    if (l.id === listId) {
+      const items = (l.items || []).filter((i: GroceryItem) => i.id !== itemId);
+      const newTotal = items.reduce((acc: number, i: GroceryItem) => acc + (i.total_price || 0), 0);
+      return { ...l, items, total_amount: newTotal };
+    }
+    return l;
+  });
+
+  saveLocalGroceryLists(updatedLists);
+  return true;
+}
+

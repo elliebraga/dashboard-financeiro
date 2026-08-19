@@ -39,21 +39,47 @@ CREATE TABLE IF NOT EXISTS public.transactions (
 -- Adicionar a coluna is_paid caso a tabela já existisse anteriormente
 ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT true;
 
--- 5. Criar índices para performance em consultas comuns
+-- 5. Tabela: grocery_lists (Listas de Compras de Mercado)
+CREATE TABLE IF NOT EXISTS public.grocery_lists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    total_amount NUMERIC(12, 2) DEFAULT 0.00,
+    notes TEXT,
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived')),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 6. Tabela: grocery_items (Itens da Lista de Compras)
+CREATE TABLE IF NOT EXISTS public.grocery_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    list_id UUID REFERENCES public.grocery_lists(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    quantity NUMERIC(10, 2) DEFAULT 1.00,
+    unit_price NUMERIC(12, 2) DEFAULT 0.00,
+    total_price NUMERIC(12, 2) DEFAULT 0.00,
+    is_purchased BOOLEAN DEFAULT false,
+    category TEXT DEFAULT 'Outros',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 7. Criar índices para performance em consultas comuns
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON public.transactions(date DESC);
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON public.transactions(type);
 CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON public.transactions(category_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_is_paid ON public.transactions(is_paid);
 CREATE INDEX IF NOT EXISTS idx_users_username ON public.users(username);
+CREATE INDEX IF NOT EXISTS idx_grocery_lists_date ON public.grocery_lists(date DESC);
+CREATE INDEX IF NOT EXISTS idx_grocery_items_list_id ON public.grocery_items(list_id);
 
--- 6. Inserção dos Usuários Permitidos (Seed Initial Data)
+-- 8. Inserção dos Usuários Permitidos (Seed Initial Data)
 INSERT INTO public.users (username, password, name) VALUES
     ('ellieb', 'Mofsv@2507', 'Ellie Braga'),
     ('lizfnery', 'Mofsv@2507', 'Liz Nery')
 ON CONFLICT (username) DO UPDATE 
 SET password = EXCLUDED.password, name = EXCLUDED.name;
 
--- 7. Inserção de Categorias Padrão (Seed Initial Data)
+-- 9. Inserção de Categorias Padrão (Seed Initial Data)
 INSERT INTO public.categories (name, type) VALUES
     ('Salário', 'income'),
     ('Freelance', 'income'),
@@ -68,25 +94,30 @@ INSERT INTO public.categories (name, type) VALUES
     ('Outras Despesas', 'expense')
 ON CONFLICT DO NOTHING;
 
--- 8. Habilitar RLS (Row Level Security) em todas as tabelas
+-- 10. Habilitar RLS (Row Level Security) em todas as tabelas
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.grocery_lists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.grocery_items ENABLE ROW LEVEL SECURITY;
 
 -- Políticas Idempotentes de Leitura e Escrita Completas (ALL)
-DROP POLICY IF EXISTS "Permitir leitura pública em users" ON public.users;
 DROP POLICY IF EXISTS "Permitir tudo em users" ON public.users;
 CREATE POLICY "Permitir tudo em users" ON public.users FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Permitir leitura pública em categories" ON public.categories;
-DROP POLICY IF EXISTS "Permitir inserção em categories" ON public.categories;
 DROP POLICY IF EXISTS "Permitir tudo em categories" ON public.categories;
 CREATE POLICY "Permitir tudo em categories" ON public.categories FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Permitir tudo em transactions" ON public.transactions;
 CREATE POLICY "Permitir tudo em transactions" ON public.transactions FOR ALL USING (true) WITH CHECK (true);
 
--- 9. Adicionar Tabelas à Publicação Realtime do Supabase
+DROP POLICY IF EXISTS "Permitir tudo em grocery_lists" ON public.grocery_lists;
+CREATE POLICY "Permitir tudo em grocery_lists" ON public.grocery_lists FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir tudo em grocery_items" ON public.grocery_items;
+CREATE POLICY "Permitir tudo em grocery_items" ON public.grocery_items FOR ALL USING (true) WITH CHECK (true);
+
+-- 11. Adicionar Tabelas à Publicação Realtime do Supabase
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -102,4 +133,21 @@ BEGIN
     ) THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.categories;
     END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'grocery_lists'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.grocery_lists;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'grocery_items'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.grocery_items;
+    END IF;
 END $$;
+
+-- Recarregar cache de schemas do PostgREST
+NOTIFY pgrst, 'reload schema';

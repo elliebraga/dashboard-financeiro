@@ -29,3 +29,41 @@ export interface Summary {
   totalExpense: number;
   balance: number;
 }
+
+// -----------------------------------------------------------------
+// TIPOS DO MÓDULO DE COMPRAS DE MERCADO
+// -----------------------------------------------------------------
+
+export type GroceryCategory =
+  | 'Hortifruti'
+  | 'Laticínios'
+  | 'Carnes & Peixes'
+  | 'Padaria'
+  | 'Limpeza'
+  | 'Higiene'
+  | 'Bebidas'
+  | 'Mercearia'
+  | 'Outros';
+
+export interface GroceryItem {
+  id: string;
+  list_id: string;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number; // quantidade * preço unitário
+  is_purchased: boolean;
+  category: GroceryCategory | string;
+  created_at?: string;
+}
+
+export interface GroceryList {
+  id: string;
+  title: string;
+  date: string;
+  total_amount: number;
+  notes?: string | null;
+  status: 'active' | 'completed' | 'archived';
+  items?: GroceryItem[];
+  created_at?: string;
+}
