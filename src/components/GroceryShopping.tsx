@@ -13,6 +13,7 @@ import {
   Sparkles, 
   FileText, 
   ChevronRight,
+  ChevronDown,
   ListPlus,
   BarChart3,
   Loader2,
@@ -205,19 +206,19 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
   const editPreviewTotal = editPreviewQty * editPreviewPrice;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 overflow-hidden">
+    <div className="space-y-6 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
       
-      {/* CABEÇALHO DO MÓDULO DE MERCADO */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs overflow-hidden">
+      {/* CABEÇALHO DO MÓDULO DE MERCADO (RESPONSIVO) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-xs w-full max-w-full overflow-hidden">
         <div className="flex items-center space-x-3.5 min-w-0">
           <div className="p-3 bg-pink-100 text-pink-600 rounded-2xl border border-pink-200/80 shrink-0">
             <ShoppingCart className="w-6 h-6" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 truncate">Compras de Mercado</h1>
               <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-bold shrink-0">
-                Módulo Ativo
+                Ativo
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 truncate">
@@ -236,11 +237,11 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </button>
       </div>
 
-      {/* SELETOR DE LISTAS & CARDS RESUMO */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* CARDS RESUMO (GRID RESPONSIVO 1 / 3 COLUNAS) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-full overflow-hidden">
         
         {/* Card 1: Soma Total da Lista Atual */}
-        <div className="bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-3xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-3xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between min-w-0">
           <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
             <ShoppingCart className="w-28 h-28 text-white" />
           </div>
@@ -261,7 +262,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </div>
 
         {/* Card 2: Progresso dos Itens Comprados */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between overflow-hidden min-w-0">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">
@@ -288,7 +289,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </div>
 
         {/* Card 3: Comparador com a Compra Anterior */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between overflow-hidden min-w-0">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 truncate">
               <BarChart3 className="w-3.5 h-3.5 text-pink-500 shrink-0" /> Comparativo Mensal
@@ -331,23 +332,30 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
 
       </div>
 
-      {/* SELETOR DE LISTA DE MERCADO ATIVA & BOTÃO DE DELETAR LISTA (100% RESPONSIVO / MIN-W-0 TRUNCATE) */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-full">
+      {/* SELETOR DE LISTA DE MERCADO ATIVA (100% RESPONSIVO / STACK NO MOBILE) */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full max-w-full overflow-hidden box-border">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Calendar className="w-4 h-4 text-pink-500" /> Lista Ativa:
+            <Calendar className="w-4 h-4 text-pink-500 shrink-0" /> Lista Ativa:
           </label>
-          <select
-            value={selectedListId}
-            onChange={(e) => setSelectedListId(e.target.value)}
-            className="w-full sm:flex-1 min-w-0 max-w-full truncate bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-extrabold text-sm rounded-2xl px-3.5 sm:px-4 py-2.5 outline-none min-h-[44px]"
-          >
-            {groceryLists.map(l => (
-              <option key={l.id} value={l.id} className="truncate">
-                {l.title} ({new Date(l.date).toLocaleDateString('pt-BR')}) - R$ {l.total_amount.toFixed(2)}
-              </option>
-            ))}
-          </select>
+
+          {/* Container Relativo para o Select sem estouro no Safari/Chrome Mobile */}
+          <div className="relative min-w-0 flex-1 w-full max-w-full">
+            <select
+              value={selectedListId}
+              onChange={(e) => setSelectedListId(e.target.value)}
+              className="appearance-none w-full min-w-0 max-w-full truncate bg-slate-50 border border-slate-200 focus:border-pink-500 text-slate-900 font-extrabold text-sm rounded-2xl px-4 py-3 sm:py-2.5 outline-none min-h-[44px] pr-9 cursor-pointer box-border"
+            >
+              {groceryLists.map(l => (
+                <option key={l.id} value={l.id} className="truncate">
+                  {l.title} ({new Date(l.date).toLocaleDateString('pt-BR')}) - R$ {l.total_amount.toFixed(2)}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
         </div>
 
         {activeList && (
@@ -361,7 +369,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                 }
               }
             }}
-            className="w-full sm:w-auto px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-xs font-bold transition-colors flex items-center justify-center space-x-1.5 shrink-0 min-h-[44px]"
+            className="w-full sm:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-xs font-bold transition-colors flex items-center justify-center space-x-1.5 shrink-0 min-h-[44px]"
           >
             <Trash2 className="w-4 h-4" />
             <span>Excluir Lista</span>
@@ -369,8 +377,8 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         )}
       </div>
 
-      {/* SEÇÃO HISTÓRICO & COMPARADOR DE COMPRAS DE MERCADO (RESPONSIVO) */}
-      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs overflow-hidden">
+      {/* SEÇÃO HISTÓRICO & COMPARADOR DE COMPRAS DE MERCADO (CARDS RESPONSIVOS) */}
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-xs w-full max-w-full overflow-hidden">
         <div className="flex items-center space-x-2.5 mb-4">
           <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100 shrink-0">
             <BarChart3 className="w-5 h-5" />
@@ -381,12 +389,12 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 w-full max-w-full">
           {groceryLists.map((list) => (
             <div
               key={list.id}
               onClick={() => setSelectedListId(list.id)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer overflow-hidden ${
+              className={`p-4 rounded-2xl border transition-all cursor-pointer overflow-hidden min-w-0 ${
                 list.id === selectedListId
                   ? 'bg-pink-50/80 border-pink-400 shadow-xs ring-2 ring-pink-300/50'
                   : 'bg-slate-50/80 border-slate-200 hover:border-pink-200'
@@ -412,11 +420,11 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
         </div>
       </div>
 
-      {/* PAINEL PRINCIPAL: FORMULÁRIO DE ADICIONAR ITEM & CHECKLIST DE MERCADO */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
+      {/* PAINEL PRINCIPAL: FORMULÁRIO DE ADICIONAR ITEM & CHECKLIST DE MERCADO (RESPONSIVO) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-full overflow-hidden">
         
         {/* COLUNA ESQUERDA: FORMULÁRIO PARA ANOTAR NOVO ITEM */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs h-fit overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-xs h-fit overflow-hidden">
           <div className="flex items-center space-x-2.5 mb-4">
             <div className="p-2 bg-pink-50 text-pink-600 rounded-xl border border-pink-100 shrink-0">
               <Plus className="w-4 h-4" />
@@ -427,7 +435,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
           {itemSuccessMsg && (
             <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{itemSuccessMsg}</span>
+              <span className="truncate">{itemSuccessMsg}</span>
             </div>
           )}
 
@@ -523,8 +531,8 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
           </form>
         </div>
 
-        {/* COLUNA DIREITA: TABELA / CHECKLIST DE ITENS DO MERCADO */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between overflow-hidden">
+        {/* COLUNA DIREITA: TABELA / CHECKLIST DE ITENS DO MERCADO (LINHAS RESPONSIVAS) */}
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between overflow-hidden">
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
               <div className="min-w-0">
@@ -562,14 +570,14 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                   return (
                     <div
                       key={item.id}
-                      className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 overflow-hidden ${
+                      className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 overflow-hidden ${
                         item.is_purchased
                           ? 'bg-slate-50/60 border-slate-200 opacity-75'
                           : 'bg-white border-slate-200/80 shadow-2xs hover:border-pink-200'
                       }`}
                     >
-                      {/* Checkbox & Nome */}
-                      <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      {/* Checkbox & Nome & Qtd */}
+                      <div className="flex items-center space-x-3 min-w-0 flex-1 w-full">
                         <button
                           type="button"
                           onClick={() => onToggleItemPurchased(item.id, item.is_purchased)}
@@ -583,8 +591,8 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                         </button>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center space-x-2 min-w-0">
-                            <span className={`font-bold text-sm truncate ${item.is_purchased ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                            <span className={`font-bold text-sm break-words ${item.is_purchased ? 'line-through text-slate-400' : 'text-slate-900'}`}>
                               {item.name}
                             </span>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border shrink-0 ${catColor}`}>
@@ -599,32 +607,32 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
                       </div>
 
                       {/* Total do Item, Botão de Edição & Botão de Deletar */}
-                      <div className="flex items-center space-x-2 shrink-0">
-                        <div className="text-right mr-1">
-                          <span className={`font-extrabold text-sm ${item.is_purchased ? 'text-slate-400' : 'text-slate-900'}`}>
-                            R$ {(item.total_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </span>
+                      <div className="flex items-center justify-between sm:justify-end space-x-2 shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <span className={`font-extrabold text-sm ${item.is_purchased ? 'text-slate-400' : 'text-slate-900'}`}>
+                          Total: R$ {(item.total_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+
+                        <div className="flex items-center space-x-1">
+                          {/* BOTÃO PARA EDITAR ITEM */}
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditItem(item)}
+                            className="p-1.5 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            title="Editar item"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+
+                          {/* BOTÃO PARA DELETAR ITEM */}
+                          <button
+                            type="button"
+                            onClick={() => onDeleteItem(item.id, activeList.id)}
+                            className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            title="Remover item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-
-                        {/* BOTÃO PARA EDITAR ITEM */}
-                        <button
-                          type="button"
-                          onClick={() => handleStartEditItem(item)}
-                          className="p-1.5 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-                          title="Editar item da lista"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-
-                        {/* BOTÃO PARA DELETAR ITEM */}
-                        <button
-                          type="button"
-                          onClick={() => onDeleteItem(item.id, activeList.id)}
-                          className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-                          title="Remover item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
                   );
@@ -635,7 +643,7 @@ export const GroceryShopping: React.FC<GroceryShoppingProps> = ({
 
           {/* RODAPÉ DO RESUMO */}
           {items.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold text-slate-500">
               <span>{purchasedItems.length} comprados no carrinho</span>
               <span className="text-pink-600 font-extrabold text-sm">
                 Soma Total: R$ {totalListAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
